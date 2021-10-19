@@ -1,0 +1,80 @@
+# A general .gitignore for Gradle built Java projects that
+# may use IntelliJ or Eclipse as an IDE.
+
+# built application files for Android development
+*.apk
+*.ap_
+
+# Ignition Module files
+*.modl
+
+# files for the dex VM
+*.dex
+
+# Ignore Java class files
+*.class
+
+# Gradle generated files
+bin/
+gen/
+
+# Local configuration file used for proj. specific settings (sdk paths, etc)
+local.properties
+
+# Ignore Eclipse project files
+.classpath
+.project
+
+# JetBrains IDE
+.idea
+
+## File-based project format:
+*.iws
+
+# Gradle related files and caches
+.gradletasknamecache
+.gradle/
+build/
+alpha/
+testnet/
+unit-tests/
+
+*.dat
+*.dat-journal
+*.dat-shm
+*.dat-wal
+*.bdt
+poolshares.txt
+poolshares-normal.txt
+poolshares-solo.txt
+*.wallet
+*.spvchain
+*.state
+
+\.vscode/
+
+*.orig
+*.log
+status_log.txt
+classes/
+out/
+generated/
+nodecore.properties
+ncpop.properties
+x.txt
+testledgerout.txt
+*.csh
+*.csh-shm
+*.csh-wal
+*.pem
+*.crt
+*.tmp
+.datadir
+*.blk
+
+.DS_Store
+scripts/certs/
+
+certs/
+*.iml
+*.prefs
