@@ -1,0 +1,128 @@
+package nodecore.testframework.wrapper.vbtc
+
+import kotlinx.coroutines.runBlocking
+import nodecore.testframework.BtcPluginInterface
+import nodecore.testframework.KGenericContainer
+import nodecore.testframework.waitUntil
+import org.testcontainers.containers.BindMode
+import org.veriblock.core.utilities.createLogger
+import java.io.Closeable
+import java.io.File
+
+private val logger = createLogger {  }
+
+class TestVBTC(
+    val settings: VBtcSettings,
+    val version: String
+): BtcPluginInterface, Closeable, AutoCloseable {
+
+    val name = "vbtc${settings.index}"
+    val datadir = File(settings.baseDir, name)
+    val container = KGenericContainer("veriblock/vbitcoin:$version")
+        .withNetworkAliases(name)
+        .withNetworkMode("host")
+        .withFileSystemBind(datadir.absolutePath, "/home/vbitcoin/.vbitcoin", BindMode.READ_WRITE)
+        .withCommand("vbitcoind")
+
+    val conf =  File(datadir, "vbitcoin.conf")
+
+    val rpc = VBTCApi(
+        name,
+        container.host,
+        settings.rpcPort,
+        settings.username,
+        settings.password
+    )
+
+
+    init {
+        datadir.mkdirs()
+        datadir.setReadable(true, false)
+        datadir.setWritable(true, false)
+        conf.createNewFile()
+        conf.setReadable(true, false)
+        conf.setWritable(true, false)
+        conf.writeText(
+            """
+                ${settings.vbtcNetwork}=1
+                dnsseed=0
+                upnp=0
+                debug=0
+
+                fallbackfee=0.0001
+
+                zmqpubrawblock=tcp://0.0.0.0:${settings.zmqPort}
+                zmqpubhashblock=tcp://0.0.0.0:${settings.zmqPort}
+
+                rpcworkqueue=256
+
+                server=1
+                txindex=1
+                reindex=0
+                listen=1
+                rpcallowip=0.0.0.0/0
+
+                rpcuser=${settings.username}
+                rpcpassword=${settings.password}
+
+                poplogverbosity=info
+                popbtcnetwork=${settings.bitcoinNetwork}
+                popvbknetwork=${settings.veriblockNetwork}
+                popautoconfig=1
+                
+                [regtest]
+                port=${settings.p2pPort}
+                rpcport=${settings.rpcPort}
+                rpcbind=0.0.0.0
+            """.trimIndent()
+        )
+    }
+
+    suspend fun start() {
+        container.start()
+        waitForRpcAvailability()
+    }
+
+    fun stop() {
+        container.stop()
+    }
+
+    suspend fun restart() {
+        stop()
+        start()
+    }
+
+    fun isAlive(): Boolean {
+        return container.isRunning
+    }
+
+    suspend fun waitForRpcAvailability() {
+        waitUntil(delay=4_000L) {
+            try {
+                rpc.getBlockchainInfo()
+                return@waitUntil true
+            } catch(e: Exception) {
+                logger.debug { "failed... $e" }
+                return@waitUntil false
+            }
+        }
+    }
+
+    override fun name(): String = name
+    override fun payoutAddress(): String {
+        check(isAlive()) {
+            "VBTC must be started before getting payout address"
+        }
+
+        return runBlocking { rpc.getNewAddress() }
+    }
+    override fun username(): String = settings.username
+    override fun password(): String = settings.password
+    override fun id(): Int = 0x3ae6ca
+    override fun port(): Int = settings.rpcPort
+    override fun network(): String = settings.bitcoinNetwork
+    override fun payoutDelay(): Int = 50
+    override fun close() {
+        stop()
+    }
+}
