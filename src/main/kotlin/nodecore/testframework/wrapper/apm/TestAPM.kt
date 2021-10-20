@@ -5,8 +5,8 @@ import nodecore.testframework.BtcPluginInterface
 import nodecore.testframework.KGenericContainer
 import nodecore.testframework.waitUntil
 import nodecore.testframework.wrapper.nodecore.TestNode
+import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
-//import org.veriblock.core.utilities.createLogger
 import java.io.Closeable
 import java.io.File
 
@@ -20,7 +20,7 @@ data class ApmSettings(
     val baseDir: File,
 )
 
-//private val logger = createLogger {}
+private val logger = LoggerFactory.getLogger("TestAPM")
 
 class TestAPM(
     val settings: ApmSettings,
@@ -109,7 +109,7 @@ class TestAPM(
                 http.getMinerInfo()
                 return@waitUntil true
             } catch (e: Exception) {
-//                logger.debug { "failed... $e" }
+                logger.debug("failed... $e")
                 return@waitUntil false
             }
         }

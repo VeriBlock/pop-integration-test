@@ -91,7 +91,7 @@ class TestNode(
                 } catch (e: Exception) {
                     // no connection yet
                     // repeat every half a second
-//                    logger.debug { "$name waiting for rpc availability... $e" }
+                    logger.debug("$name waiting for rpc availability... $e")
                     delay(2000L)
                 }
             }

@@ -1,7 +1,7 @@
 package nodecore.testframework
 
 import kotlinx.coroutines.runBlocking
-//import org.veriblock.core.utilities.createLogger
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.File
 import java.lang.Exception
@@ -11,7 +11,7 @@ open class ProcessManager(
     val datadir: File,
     builder: (datadir: File) -> ProcessBuilder
 ) : Closeable, AutoCloseable {
-//    var logger = createLogger { }
+    var logger = LoggerFactory.getLogger("ProcessManager")
     var process: Process? = null
     val processBuilder: ProcessBuilder
     val stdout = File(datadir, "stdout")
@@ -32,10 +32,10 @@ open class ProcessManager(
     }
 
     suspend fun start(waitForAvailability: suspend () -> Unit) {
-//        logger.info { "$name is starting" }
+        logger.info("$name is starting")
         process = processBuilder.start()
         waitForAvailability()
-//        logger.info { "$name started" }
+        logger.info("$name started")
     }
 
     fun isAlive(): Boolean {
@@ -57,7 +57,7 @@ open class ProcessManager(
     }
 
     override fun close() {
-//        logger.info { "Stopping $name" }
+        logger.info("Stopping $name")
 
         // stop this process
         runBlocking {

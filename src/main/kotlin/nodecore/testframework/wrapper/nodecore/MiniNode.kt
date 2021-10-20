@@ -11,7 +11,7 @@ import nodecore.api.grpc.RpcAnnounce
 import nodecore.api.grpc.RpcEvent
 import nodecore.api.grpc.RpcNodeInfo
 import nodecore.testframework.buildMessage
-//import org.veriblock.core.utilities.createLogger
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
@@ -21,7 +21,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
-//private val logger = createLogger {}
+private val logger = LoggerFactory.getLogger("MiniNode")
 
 private val PEER_INPUT_POOL: ExecutorService = Executors.newFixedThreadPool(
     8,
@@ -55,15 +55,15 @@ private class PeerSocket(
     }
 
     fun write(message: RpcEvent) {
-//        logger.debug { "$peerName <--p2p-- ${message.resultsCase.name}" }
+        logger.debug("$peerName <--p2p-- ${message.resultsCase.name}")
         try {
             if (!writeQueue.offer(message)) {
-//                logger.warn {
-//                    "Not writing event ${message.resultsCase.name} to peer $peerName because write queue is full."
-//                }
+                logger.warn(
+                    "Not writing event ${message.resultsCase.name} to peer $peerName because write queue is full."
+                )
             }
         } catch (e: InterruptedException) {
-//            logger.warn { "Output stream thread shutting down for peer $peerName" }
+            logger.warn("Output stream thread shutting down for peer $peerName")
         }
     }
 
@@ -89,7 +89,7 @@ private class PeerSocket(
                 try {
                     socket.close()
                 } catch (e: IOException) {
-//                    logger.warn("[${peerName}] Exception closing socket", e)
+                    logger.warn("[${peerName}] Exception closing socket", e)
                 }
             }
         }
@@ -104,16 +104,16 @@ private class PeerSocket(
                 writeChannel.writeFully(message, 0, message.size)
                 writeChannel.flush()
             } catch (e: InterruptedException) {
-//                logger.debug("[${peerName}] Output stream thread shutting down - Interrupted")
+                logger.debug("[${peerName}] Output stream thread shutting down - Interrupted")
                 break
             } catch (e: CancellationException) {
-//                logger.debug("[${peerName}] Output stream thread shutting down - Cancelled")
+                logger.debug("[${peerName}] Output stream thread shutting down - Cancelled")
                 break
             } catch (e: SocketException) {
-//                logger.debug("[${peerName}] Socket closed")
+                logger.debug("[${peerName}] Socket closed")
                 break
             } catch (e: Exception) {
-//                logger.warn("[${peerName}] Error in output stream thread!", e)
+                logger.warn("[${peerName}] Error in output stream thread!", e)
                 break
             }
         }
@@ -127,19 +127,19 @@ private class PeerSocket(
                 readChannel.readFully(raw, 0, nextMessageSize)
                 onMsg(raw)
             } catch (e: SocketException) {
-//                logger.debug("[${peerName}] Attempted to read from a socket that has been closed.")
+                logger.debug("[${peerName}] Attempted to read from a socket that has been closed.")
                 break
             } catch (e: EOFException) {
-//                logger.debug("[$peerName] Disconnected from peer - EOF.")
+                logger.debug("[$peerName] Disconnected from peer - EOF.")
                 break
             } catch (e: ClosedReceiveChannelException) {
-//                logger.debug("[$peerName] Disconnected from peer - Closed.")
+                logger.debug("[$peerName] Disconnected from peer - Closed.")
                 break
             } catch (e: CancellationException) {
-//                logger.debug("[${peerName}] Input stream thread shutting down")
+                logger.debug("[${peerName}] Input stream thread shutting down")
                 break
             } catch (e: Exception) {
-//                logger.warn("[${peerName}] Socket error: ", e)
+                logger.warn("[${peerName}] Socket error: ", e)
                 break
             }
         }
@@ -189,11 +189,11 @@ open class MiniNode : Closeable, AutoCloseable {
 
     suspend fun connect(p: TestNode, shouldAnnounce: Boolean = true) {
         if (socket != null) {
-//            logger.warn { "Already connected to ${peerName()}, disconnect first" }
+            logger.warn("Already connected to ${peerName()}, disconnect first")
             return
         }
         val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
-//        logger.debug { "Connecting to node${p.settings.index}" }
+        logger.debug("Connecting to node${p.settings.index}")
 
         try {
             socket = PeerSocket(
@@ -216,7 +216,7 @@ open class MiniNode : Closeable, AutoCloseable {
                 socket!!.write(announceMsg)
             }
         } catch (e: Exception) {
-//            logger.error { "Unable to connect to ${peerName()}" }
+            logger.error("Unable to connect to ${peerName()}")
             socket = null
             throw e
         }
@@ -224,9 +224,7 @@ open class MiniNode : Closeable, AutoCloseable {
 
     @Synchronized
     override fun close() {
-//        logger.debug {
-//            "Disconnecting from ${peerName()}"
-//        }
+        logger.debug("Disconnecting from ${peerName()}")
 
         socket?.close()
         socket = null
@@ -247,14 +245,14 @@ open class MiniNode : Closeable, AutoCloseable {
     private suspend fun handleMessage(buf: ByteArray) {
         try {
             val event = RpcEvent.parseFrom(buf)
-//            logger.debug { "${peerName()} --p2p--> ${event.resultsCase.name}" }
+            logger.debug("${peerName()} --p2p--> ${event.resultsCase.name}")
             // store stats about received msgs
             val count = stats.getOrDefault(event.resultsCase.name, 0L)
             stats[event.resultsCase.name] = count + 1
             // let user handle msg
             onEvent(event)
         } catch (e: Exception) {
-//            logger.error { "${peerName()} misbehaved! Can't parse Event of size ${buf.size}." }
+            logger.error("${peerName()} misbehaved! Can't parse Event of size ${buf.size}.")
             close()
             return
         }

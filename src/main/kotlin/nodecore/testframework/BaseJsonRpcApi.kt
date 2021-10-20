@@ -1,9 +1,8 @@
 package nodecore.testframework
 
-import io.ktor.client.features.auth.providers.*
 import io.ktor.client.request.*
 import nodecore.api.*
-//import org.veriblock.core.utilities.createLogger
+import org.slf4j.LoggerFactory
 import java.util.*
 
 open class BaseJsonRpcApi(
@@ -24,13 +23,13 @@ open class BaseJsonRpcApi(
         val jsonBody = JsonRpcRequestBody(
             method = method, params = params
         ).toJson()
-//        logger.debug { "$name <--jsonrpc-- $jsonBody" }
+        logger.debug("$name <--jsonrpc-- $jsonBody")
         val response = httpClient.post<RpcResponse>(apiConfig.url) { body = jsonBody }
-//        logger.debug { "$name --jsonrpc--> $response" }
+        logger.debug("$name --jsonrpc--> $response")
         return response.handle()
     }.handle()
 
     companion object {
-//        val logger = createLogger { }
+        val logger = LoggerFactory.getLogger("BaseJsonRpcApi")
     }
 }

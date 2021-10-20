@@ -5,9 +5,7 @@ import io.ktor.client.features.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-//import org.veriblock.core.utilities.createLogger
-
-//private val logger1 = createLogger {}
+import org.slf4j.LoggerFactory
 
 class ApmHttpApi(val name: String, _host: String, _port: Int) {
     data class MinerInfoResponse(
@@ -55,23 +53,23 @@ class ApmHttpApi(val name: String, _host: String, _port: Int) {
     }
 
     private suspend inline fun <reified T> GET(url: String): T {
-//        logger.debug { "$name <--http-- GET $url" }
+        logger.debug("$name <--http-- GET $url")
         val ret = client.get<T>(url)
-//        logger.debug { "$name --http--> $ret" }
+        logger.debug("$name --http--> $ret")
         return ret
     }
 
     private suspend inline fun <reified T, reified U> POST(url: String, _body: U): T {
-//        logger.debug { "$name <--http-- POST $url" }
+        logger.debug("$name <--http-- POST $url")
         val ret = client.post<T>(url) {
             body = _body!!
         }
-//        logger.debug { "$name --http--> $ret" }
+        logger.debug("$name --http--> $ret")
         return ret
     }
 
 
     companion object {
-//        val logger = createLogger { }
+        val logger = LoggerFactory.getLogger("ApmHttpApi")
     }
 }

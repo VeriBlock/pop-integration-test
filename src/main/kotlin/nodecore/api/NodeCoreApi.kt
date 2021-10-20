@@ -2,8 +2,7 @@ package nodecore.api
 
 import io.ktor.client.request.post
 import kotlinx.coroutines.delay
-//import nodecore.config
-//import org.veriblock.core.utilities.createLogger
+import org.slf4j.LoggerFactory
 import java.util.Collections.EMPTY_MAP
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -13,7 +12,7 @@ import kotlin.math.roundToInt
 
 private val httpClient = createHttpClient()
 
-//private val logger = createLogger {}
+private val logger = LoggerFactory.getLogger("NodeCoreApi")
 
 object NodeCoreApi {
     suspend fun getInfo(): VbkInfo = performRequest(
@@ -88,7 +87,7 @@ object NodeCoreApi {
                 getInfo()
                 break
             } catch (e: Exception) {
-//                logger.warn { "NodeCore not available yet, trying again in 10s..." }
+                logger.warn("NodeCore not available yet, trying again in 10s...")
                 delay(10_000L)
             }
         }
@@ -121,17 +120,17 @@ object NodeCoreApi {
                     } else {
                         ""
                     }
-//                    logger.warn { "Waiting for NodeCore to synchronize. $syncState blocks left (LocalHeight=${stateInfo.localBlockchainHeight} NetworkHeight=${stateInfo.networkHeight}$syncSummary)" }
+                    logger.warn("Waiting for NodeCore to synchronize. $syncState blocks left (LocalHeight=${stateInfo.localBlockchainHeight} NetworkHeight=${stateInfo.networkHeight}$syncSummary)")
                     previousState = syncState
 
                     delay(5_000L)
                     continue
                 }
 
-//                logger.info("NodeCore is synchronized.. continuing.")
+                logger.info("NodeCore is synchronized.. continuing.")
                 break
             } catch (e: Exception) {
-//                logger.warn { "NodeCore not available, trying again in 5s..." }
+                logger.warn("NodeCore not available, trying again in 5s...")
                 delay(5_000L)
             }
         }
@@ -141,7 +140,7 @@ object NodeCoreApi {
         while (true) {
             val info = getInfo()
             val tip = info.lastBlock.number
-//            logger.info { "Current Tip: $tip" }
+            logger.info("Current Tip: $tip")
             if (tip >= blockHeight) {
                 return
             }

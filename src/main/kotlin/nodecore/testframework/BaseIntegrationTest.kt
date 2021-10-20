@@ -8,7 +8,7 @@ import nodecore.testframework.wrapper.nodecore.TestNode
 import nodecore.testframework.wrapper.vbtc.TestVBTC
 import nodecore.testframework.wrapper.vbtc.VBtcSettings
 import org.junit.ComparisonFailure
-//import org.veriblock.core.utilities.createLogger
+import org.slf4j.LoggerFactory
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -28,7 +28,7 @@ abstract class BaseIntegrationTest(
     val apms = ArrayList<TestAPM>() /* empty by default */
     val nodes = ArrayList<TestNode>() /* empty by default */
     val vbtcs = ArrayList<TestVBTC>() /* empty by default */
-//    val logger = createLogger {}
+    val logger = LoggerFactory.getLogger("BaseIntegrationTest")
     val baseNodeRpcPort = 23300
     val baseNodeP2pPort = 23200
     val baseNodeHttpPort = 23100
@@ -100,7 +100,7 @@ abstract class BaseIntegrationTest(
 
         val nc = TestNode(ncSettings, args, jvmArgs)
         nodes.add(nc)
-//        logger.info { "Setting up ${nc.name} with network=${ncSettings.network}" }
+        logger.info("Setting up ${nc.name} with network=${ncSettings.network}")
         return nc
     }
 
@@ -116,7 +116,7 @@ abstract class BaseIntegrationTest(
 
         val apm = TestAPM(apmSettings, version)
         apms.add(apm)
-//        logger.info { "Setting up ${apm.name} connected to ${node.name} and BTC plugins: ${btcaltchains.joinToString { it.name() }}" }
+        logger.info("Setting up ${apm.name} connected to ${node.name} and BTC plugins: ${btcaltchains.joinToString { it.name() }}")
         return apm
     }
 
@@ -131,15 +131,14 @@ abstract class BaseIntegrationTest(
 
         val vbtc = TestVBTC(settings, version)
         vbtcs.add(vbtc)
-//        logger.info { "Setting up ${vbtc.name}" }
+        logger.info("Setting up ${vbtc.name}")
         return vbtc
     }
 
     // entry point for every test
     suspend fun main() {
         try {
-//            logger.info { "Setting base dir ${baseDir.absolutePath}" }
-            println("Running ExampleApmTest test!")
+            logger.info("Setting base dir ${baseDir.absolutePath}")
 
             Runtime.getRuntime().addShutdownHook(Thread {
                 shutdown()
@@ -151,12 +150,12 @@ abstract class BaseIntegrationTest(
             willCleanup = shouldCleanup
             exitCode = 0
         } catch (e: ComparisonFailure) {
-//            logger.error { "ASSERTION FAILED" }
+            logger.error("ASSERTION FAILED")
             e.printStackTrace()
             status = TestStatus.FAILED
             exitCode = 1
         } catch (e: Exception) {
-//            logger.error { "UNHANDLED EXCEPTION" }
+            logger.error("UNHANDLED EXCEPTION")
             e.printStackTrace()
             status = TestStatus.FAILED
             exitCode = 1
@@ -171,15 +170,15 @@ abstract class BaseIntegrationTest(
     }
 
     private fun shutdown(): Int {
-//        logger.info { "Test ${status.state}!" }
-//        logger.info { "Logs are available in ${baseDir.absolutePath}" }
-//        logger.info { "Shutting down environment..." }
+        logger.info("Test ${status.state}!")
+        logger.info("Logs are available in ${baseDir.absolutePath}")
+        logger.info("Shutting down environment...")
 
         if (willCleanup) {
-//            logger.info { "Cleaning up datadirs" }
+            logger.info("Cleaning up datadirs")
             baseDir.deleteRecursively()
         } else {
-//            logger.info { "Not cleaning up datadirs" }
+            logger.info("Not cleaning up datadirs")
         }
 
         runBlocking {
@@ -210,7 +209,7 @@ abstract class BaseIntegrationTest(
                 return@waitUntil hashes.toSet().size == 1
             }
         } catch (e: TimeoutCancellationException) {
-//            logger.error { "syncAll failed: ${hashes.joinToString { "\n" }}" }
+            logger.error("syncAll failed: ${hashes.joinToString { "\n" }}")
             throw e
         }
     }
