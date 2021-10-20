@@ -1,9 +1,7 @@
 package functional
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import nodecore.contracts.BlockHeader
 import nodecore.testframework.BaseIntegrationTest
 import nodecore.testframework.randomKeypair
 import nodecore.testframework.topUpApmWallet
@@ -57,24 +55,24 @@ class PopMiningTest : BaseIntegrationTest(1) {
     }
 
     override suspend fun runTest() {
-        logger.info { "Running PopMiningTest test!" }
+//        logger.info { "Running PopMiningTest test!" }
         val vbtc = addVBTC()
         vbtc.start()
 
-        logger.info { "Generating 10 vBTC blocks" }
+//        logger.info { "Generating 10 vBTC blocks" }
         val vbtcAddr = vbtc.rpc.getNewAddress()
         vbtc.rpc.generateToAddress(10, vbtcAddr)
 
         val apm = addAPM(nodes[0], listOf(vbtc))
         apm.start()
 
-        logger.info { "Sending VBK to APM address ${apm.vbkAddress}" }
+//        logger.info { "Sending VBK to APM address ${apm.vbkAddress}" }
         topUpApmWallet(apm, blocks = 10)
 
         // get nodecore default address
         val ncAddress = Address(nodes[0].http.getInfo().defaultAddress.address)
 
-        logger.info { "Generating VTBs..." }
+//        logger.info { "Generating VTBs..." }
         val TOTAL_VTBS = 10
         for (i in 1..TOTAL_VTBS) {
             nodes[0].http.generateBlocks(1, ncAddress.toString())
@@ -83,19 +81,19 @@ class PopMiningTest : BaseIntegrationTest(1) {
 
         val operation = apm.http.mine(MineRequest(chainSymbol = vbtc.name, 10))
 
-        logger.info { "waiting until APM submits endorsement TX" }
+//        logger.info { "waiting until APM submits endorsement TX" }
         waitUntil(delay = 5000L) {
             try {
                 val op = apm.http.getOperation(operation.operationId)
                 op.state == "Endorsement Transaction submitted"
             } catch (e: Exception) {
-                logger.debugError(e) { "Got error during http call..." }
+//                logger.debugError(e) { "Got error during http call..." }
                 false
             }
         }
 
         // generate containing block
-        logger.info { "waiting until ATV is confirmed in VeriBlock..." }
+//        logger.info { "waiting until ATV is confirmed in VeriBlock..." }
         waitUntil(delay = 5000L) {
             nodes[0].http.generateBlocks(1, ncAddress.toString())
             val op = apm.http.getOperation(operation.operationId)
@@ -104,7 +102,7 @@ class PopMiningTest : BaseIntegrationTest(1) {
 
         val lastBlockHeight = nodes[0].http.getInfo().lastBlock.number;
 
-        logger.info { "waiting until APM sends all lacking VBK context blocks, $TOTAL_VTBS VTBs and 1 ATV" }
+//        logger.info { "waiting until APM sends all lacking VBK context blocks, $TOTAL_VTBS VTBs and 1 ATV" }
         waitUntil(delay = 5000L) {
             val popmp = vbtc.rpc.getRawPopMempool()
             // total number of VBK blocks in mempool must be `lastBlockHeight - 1`

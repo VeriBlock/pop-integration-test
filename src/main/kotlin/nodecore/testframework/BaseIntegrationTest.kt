@@ -139,6 +139,7 @@ abstract class BaseIntegrationTest(
     suspend fun main() {
         try {
 //            logger.info { "Setting base dir ${baseDir.absolutePath}" }
+            println("Running ExampleApmTest test!")
 
             Runtime.getRuntime().addShutdownHook(Thread {
                 shutdown()

@@ -39,7 +39,7 @@ class LedgerProofTest : BaseIntegrationTest(1) {
     }
 
     override suspend fun runTest() {
-        logger.info { "Running LedgerProof test!" }
+//        logger.info { "Running LedgerProof test!" }
 
         val n = LedgerProofVerifier()
         n.connect(nodes[0])
@@ -61,7 +61,7 @@ class LedgerProofTest : BaseIntegrationTest(1) {
         waitUntil { n.reply != null }
         val reply = n.reply!!
 
-        logger.debug { reply.toString() }
+//        logger.debug { reply.toString() }
 
         reply.proofsCount shouldBe 3
         val list = reply.proofsList

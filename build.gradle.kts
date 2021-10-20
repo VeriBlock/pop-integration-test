@@ -23,7 +23,10 @@ dependencies {
     implementation("org.testcontainers:testcontainers:1.16.0")
     implementation("com.google.guava:guava:31.0.1-jre")
     implementation("com.github.veriblock.nodecore:nodecore-grpc:v0.4.13-rc.2")
+    implementation("com.github.veriblock.nodecore:veriblock-extensions:v0.4.13-rc.2")
+    implementation("com.github.veriblock.nodecore:vpm-mock:v0.4.13-rc.2")
     implementation("junit:junit:4.13.2")
+    implementation("io.kotest:kotest-assertions-core-jvm:4.6.3")
     testImplementation(kotlin("test"))
 }
 

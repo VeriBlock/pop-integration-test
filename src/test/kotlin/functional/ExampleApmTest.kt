@@ -6,12 +6,13 @@ import org.junit.Test
 
 class ExampleApmTest : BaseIntegrationTest(1) {
     override suspend fun runTest() {
-        logger.info { "Running ExampleApmTest test!" }
+//        logger.info { "Running ExampleApmTest test!" }
+        println("Running ExampleApmTest test!")
         val apm = addAPM(nodes[0])
         apm.start()
 
         val res = apm.http.getMinerInfo()
-        logger.info { "$res" }
+//        logger.info { "$res" }
     }
 
     @Test

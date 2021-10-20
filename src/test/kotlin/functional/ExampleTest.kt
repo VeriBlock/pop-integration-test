@@ -47,7 +47,7 @@ class ExampleTest : BaseIntegrationTest(2) {
     }
 
     override suspend fun runTest() {
-        logger.info { "Running EXAMPLE test!" }
+//        logger.info { "Running EXAMPLE test!" }
 
         val n = ExampleMiniNode()
         n.connect(nodes[0])
