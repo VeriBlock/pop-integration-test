@@ -8,6 +8,7 @@ import nodecore.api.grpc.AdminGrpc
 import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import java.io.Closeable
 import java.io.File
@@ -26,36 +27,34 @@ class NodecoreSettings(
 
 class TestNodecore(
     val settings: NodecoreSettings,
-    val version: String
-//    args: ArrayList<String> = ArrayList(),
-//    jvmArgs: ArrayList<String> = ArrayList(),
+    val version: String,
+    private val network: Network
 ) : Closeable, AutoCloseable
-//    ProcessManager(
-//    name = "node${settings.index}",
-//    datadir = File(settings.baseDir, "node${settings.index}"), { datadir ->
-//    // specify datadir
-//    args.add("-d")
-//    args.add(datadir.absolutePath)
-//    buildNodecoreProcess(args, jvmArgs)
-//})
 {
     val name = "nodecore${settings.index}"
-    var logger = LoggerFactory.getLogger(name)
+    private var logger = LoggerFactory.getLogger(name)
     val datadir = File(settings.baseDir, name)
     val nodecoreProperties = File(datadir, "nodecore.properties")
     val rpcTimeout: Long = 30_1000 // ms
 
-    private val logConsumer = Slf4jLogConsumer(logger)
-    private val containerDatadir = "/data"
-    val container = KGenericContainer("docker-internal.veriblock.com/nodecore:$version")
+    val container = KGenericContainer("veriblock/nodecore:$version")
         .withNetworkAliases(name)
-        .withNetworkMode("host")
-        .withFileSystemBind(datadir.absolutePath, containerDatadir, BindMode.READ_WRITE)
+        .withNetwork(network)
+        .withExposedPorts(settings.httpPort, settings.peerPort, settings.rpcPort)
+        .withFileSystemBind(datadir.absolutePath, "/data", BindMode.READ_WRITE)
 
+    val host: String
+        get() = container.host
+    val rpcPort: Int
+        get() = container.getMappedPort(settings.rpcPort)
+    val peerPort: Int
+        get() = container.getMappedPort(settings.peerPort)
+    val httpPort: Int
+        get() = container.getMappedPort(settings.httpPort)
 
     // Accessor for Admin HTTP API
-    val http = NodeHttpApi(name, "127.0.0.1", settings.httpPort)
-    val rpc: AdminGrpc.AdminBlockingStub
+    lateinit var http: NodeHttpApi
+    lateinit var rpc: AdminGrpc.AdminBlockingStub
 
     init {
         datadir.mkdirs()
@@ -65,31 +64,19 @@ class TestNodecore(
         nodecoreProperties.setReadable(true, false)
         nodecoreProperties.setWritable(true, false)
 
-        // setup RPC channel
-        rpc = AdminGrpc
-            .newBlockingStub(
-                ManagedChannelBuilder
-                    .forAddress("127.0.0.1", settings.rpcPort)
-                    .usePlaintext()
-                    .build()
-            )
-            .withMaxInboundMessageSize(20 * 1024 * 1024)
-            .withMaxOutboundMessageSize(20 * 1024 * 1024)
-            .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
-
         // write nodecode.properties
         nodecoreProperties
             .writeText(
                 """
                 network=${settings.network}
                 peer.bootstrap.enabled=false
-                peer.bind.address=127.0.0.1
+                peer.bind.address=0.0.0.0
                 peer.bind.port=${settings.peerPort}
                 peer.share.platform=true
                 peer.share.myAddress=true
-                rpc.bind.address=127.0.0.1
+                rpc.bind.address=0.0.0.0
                 rpc.bind.port=${settings.rpcPort}
-                http.api.bind.address=127.0.0.1
+                http.api.bind.address=0.0.0.0
                 http.api.bind.port=${settings.httpPort}
                 regtest.progpow.height=${settings.progpowHeight}
                 regtest.progpow.start.time=${settings.progpowTime}
@@ -99,8 +86,23 @@ class TestNodecore(
 
     suspend fun start() {
         container.start()
+
+        http = NodeHttpApi(name, host, httpPort)
+        // setup RPC channel
+        rpc = AdminGrpc
+            .newBlockingStub(
+                ManagedChannelBuilder
+                    .forAddress(host, rpcPort)
+                    .usePlaintext()
+                    .build()
+            )
+            .withMaxInboundMessageSize(20 * 1024 * 1024)
+            .withMaxOutboundMessageSize(20 * 1024 * 1024)
+            .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
+
         // TODO: forward into stdout file
 //        logConsumer.withSeparateOutputStreams()
+//        val logConsumer = Slf4jLogConsumer(logger)
 //        container.followOutput(logConsumer)
         waitForRpcConnection()
     }

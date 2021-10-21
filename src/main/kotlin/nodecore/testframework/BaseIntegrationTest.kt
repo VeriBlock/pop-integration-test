@@ -9,6 +9,7 @@ import nodecore.testframework.wrapper.vbtc.TestVBTC
 import nodecore.testframework.wrapper.vbtc.VBtcSettings
 import org.junit.ComparisonFailure
 import org.slf4j.LoggerFactory
+import org.testcontainers.containers.Network
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.exitProcess
@@ -39,6 +40,7 @@ abstract class BaseIntegrationTest() {
     val baseDir: File = createTempDir(
         prefix = "veriblock_${System.currentTimeMillis()}_",
     )
+    val network: Network = Network.newNetwork()
 
     var status: TestStatus = TestStatus.FAILED
     var rpcTimeout = 60
@@ -64,7 +66,7 @@ abstract class BaseIntegrationTest() {
             network = "regtest"
         )
 
-        val nc = TestNodecore(ncSettings, version)
+        val nc = TestNodecore(ncSettings, version, network)
         nodecores.add(nc)
         logger.info("Setting up ${nc.name} with network=${ncSettings.network}")
         return nc
@@ -86,7 +88,7 @@ abstract class BaseIntegrationTest() {
         return apm
     }
 
-    fun addVBTC(version: String = "release.gamma-9e756b5"): TestVBTC {
+    fun addVBTC(version: String = "refs.pull.585.merge-d72afa0"): TestVBTC {
         val settings = VBtcSettings(
             p2pPort = baseBtcP2pPort++,
             rpcPort = baseBtcRpcPort++,

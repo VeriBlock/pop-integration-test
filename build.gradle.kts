@@ -38,7 +38,6 @@ dependencies {
     implementation("com.github.veriblock.nodecore:veriblock-extensions:v0.4.13-rc.2")
     implementation("com.github.veriblock.nodecore:vpm-mock:v0.4.13-rc.2")
     implementation("io.github.microutils:kotlin-logging:2.0.11")
-    implementation("org.slf4j:slf4j-simple:1.7.32")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation(kotlin("test"))

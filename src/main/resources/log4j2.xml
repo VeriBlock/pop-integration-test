@@ -13,18 +13,14 @@
 	</appenders>
 
 	<loggers>
-
 		<logger name="nodecore.testframework" level="DEBUG" />
 		<logger name="org.testcontainers" level="WARN" />
-		<logger name="org.veriblock.spv" level="DEBUG" />
-		<logger name="org.veriblock.lite" level="DEBUG" />
-		<logger name="org.veriblock" level="DEBUG" />
-		<logger name="com.j256.ormlite.table.TableUtils" level="WARN" />
+		<logger name="com.github.dockerjava" level="WARN"/>
+		<logger name="io.grpc.netty.shaded.io.netty" level="ERROR" />
 		<logger name="Exposed" level="ERROR" />
 		<root level="${logLevel}">
 			<appender-ref ref="consoleAppender" />
 		</root>
-
 	</loggers>
 
 </configuration>
