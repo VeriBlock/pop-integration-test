@@ -26,7 +26,6 @@ class ExampleTest : BaseIntegrationTest() {
         addNodecore()
         addNodecore()
 
-
         // before nodes started, you can append arbitrary values to nodecore.properties
         nodecores[0].nodecoreProperties.appendText("# a comment")
         // do not overwrite existing settings!
