@@ -12,6 +12,8 @@ repositories {
     maven("https://jitpack.io")
 }
 
+val kotestVersion = "4.6.3"
+
 dependencies {
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("io.ktor:ktor-client:1.6.4")
@@ -27,6 +29,8 @@ dependencies {
     implementation("com.github.veriblock.nodecore:vpm-mock:v0.4.13-rc.2")
     implementation("io.github.microutils:kotlin-logging:1.12.5")
     implementation("org.slf4j:slf4j-simple:1.7.32")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation(kotlin("test"))
 }
 
@@ -36,4 +40,8 @@ tasks.test {
 
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
