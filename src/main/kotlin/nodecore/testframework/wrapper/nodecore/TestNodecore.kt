@@ -8,6 +8,7 @@ import nodecore.api.grpc.AdminGrpc
 import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.output.Slf4jLogConsumer
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -44,11 +45,13 @@ class TestNodecore(
     val nodecoreProperties = File(datadir, "nodecore.properties")
     val rpcTimeout: Long = 30_1000 // ms
 
+    private val logConsumer = Slf4jLogConsumer(logger)
     private val containerDatadir = "/data"
     val container = KGenericContainer("docker-internal.veriblock.com/nodecore:$version")
         .withNetworkAliases(name)
         .withNetworkMode("host")
-        .withFileSystemBind(datadir.absolutePath, containerDatadir, BindMode.READ_WRITE);
+        .withFileSystemBind(datadir.absolutePath, containerDatadir, BindMode.READ_WRITE)
+
 
     // Accessor for Admin HTTP API
     val http = NodeHttpApi(name, "127.0.0.1", settings.httpPort)
@@ -96,6 +99,9 @@ class TestNodecore(
 
     suspend fun start() {
         container.start()
+        // TODO: forward into stdout file
+//        logConsumer.withSeparateOutputStreams()
+//        container.followOutput(logConsumer)
         waitForRpcConnection()
     }
 

@@ -10,6 +10,7 @@ import nodecore.testframework.wrapper.vbtc.VBtcSettings
 import org.junit.ComparisonFailure
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.exitProcess
 
 enum class TestStatus(val state: String) {
@@ -27,14 +28,14 @@ abstract class BaseIntegrationTest() {
     val nodecores = ArrayList<TestNodecore>() /* empty by default */
     val vbtcs = ArrayList<TestVBTC>() /* empty by default */
     val logger = LoggerFactory.getLogger("BaseIntegrationTest")
-    val baseNodecoreRpcPort = 23300
-    val baseNodecoreP2pPort = 23200
-    val baseNodecoreHttpPort = 23100
-    val baseApmHttpPort = 24100
-    val baseApmP2pPort = 24200
-    val baseBtcP2pPort = 25100
-    val baseBtcRpcPort = 25200
-    val baseBtcZmqPort = 25300
+    var baseNodecoreRpcPort = (23300)
+    var baseNodecoreP2pPort = (23200)
+    var baseNodecoreHttpPort = (23100)
+    var baseApmHttpPort = (24100)
+    var baseApmP2pPort = (24200)
+    var baseBtcP2pPort = (25100)
+    var baseBtcRpcPort = (25200)
+    var baseBtcZmqPort = (25300)
     val baseDir: File = createTempDir(
         prefix = "veriblock_${System.currentTimeMillis()}_",
     )
@@ -54,9 +55,9 @@ abstract class BaseIntegrationTest() {
 
     fun addNodecore(version: String = "0.4.13-rc.2.dev.2"): TestNodecore {
         val ncSettings = NodecoreSettings(
-            peerPort = getNextAvailablePort(baseNodecoreP2pPort),
-            rpcPort = getNextAvailablePort(baseNodecoreRpcPort),
-            httpPort = getNextAvailablePort(baseNodecoreHttpPort),
+            peerPort = baseNodecoreP2pPort++,
+            rpcPort = baseNodecoreRpcPort++,
+            httpPort = baseNodecoreHttpPort++,
             baseDir = baseDir,
             index = nodecores.size,
             progpowTime = progpowStartupTime,
@@ -72,8 +73,8 @@ abstract class BaseIntegrationTest() {
     fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.2.dev.2"): TestAPM {
         val apmSettings = ApmSettings(
             index = apms.size,
-            p2pPort = getNextAvailablePort(baseApmP2pPort),
-            httpPort = getNextAvailablePort(baseApmHttpPort),
+            p2pPort = baseApmP2pPort++,
+            httpPort = baseApmHttpPort++,
             nodecore = node,
             baseDir = baseDir,
             btcaltchains = btcaltchains
@@ -87,9 +88,9 @@ abstract class BaseIntegrationTest() {
 
     fun addVBTC(version: String = "release.gamma-9e756b5"): TestVBTC {
         val settings = VBtcSettings(
-            p2pPort = getNextAvailablePort(baseBtcP2pPort),
-            rpcPort = getNextAvailablePort(baseBtcRpcPort),
-            zmqPort = getNextAvailablePort(baseBtcZmqPort),
+            p2pPort = baseBtcP2pPort++,
+            rpcPort = baseBtcRpcPort++,
+            zmqPort = baseBtcZmqPort++,
             index = vbtcs.size,
             baseDir = baseDir
         )

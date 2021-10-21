@@ -13,21 +13,31 @@ repositories {
 }
 
 val kotestVersion = "4.6.3"
+val coroutinesVersion = "1.5.2-native-mt"
+val log4jVersion= "2.14.1"
+val ktorVersion = "1.6.4"
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:$coroutinesVersion")
+    implementation("io.github.microutils:kotlin-logging:2.0.11")
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
     implementation("com.google.code.gson:gson:2.8.8")
-    implementation("io.ktor:ktor-client:1.6.4")
-    implementation("io.ktor:ktor-client-core-jvm:1.6.4")
-    implementation("io.ktor:ktor-client-cio:1.6.4")
-    implementation("io.ktor:ktor-client-auth:1.6.4")
-    implementation("io.ktor:ktor-client-gson:1.6.4")
+    implementation("io.ktor:ktor-client:$ktorVersion")
+    implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
+    implementation("io.ktor:ktor-client-gson:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.3.0")
     implementation("org.testcontainers:testcontainers:1.16.0")
     implementation("com.google.guava:guava:31.0.1-jre")
     implementation("com.github.veriblock.nodecore:nodecore-grpc:v0.4.13-rc.2")
     implementation("com.github.veriblock.nodecore:veriblock-extensions:v0.4.13-rc.2")
     implementation("com.github.veriblock.nodecore:vpm-mock:v0.4.13-rc.2")
-    implementation("io.github.microutils:kotlin-logging:1.12.5")
+    implementation("io.github.microutils:kotlin-logging:2.0.11")
     implementation("org.slf4j:slf4j-simple:1.7.32")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
