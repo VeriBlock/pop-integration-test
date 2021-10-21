@@ -8,10 +8,9 @@ import nodecore.testframework.wrapper.apm.TestAPM
 import nodecore.testframework.wrapper.nodecore.BitcoinBlockHeader
 import nodecore.testframework.wrapper.nodecore.Endpoint
 import nodecore.testframework.wrapper.nodecore.SubmitPopRequest
-import nodecore.testframework.wrapper.nodecore.TestNode
+import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
-import org.veriblock.core.utilities.Utility
 import org.veriblock.core.wallet.AddressKeyGenerator
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
@@ -39,7 +38,7 @@ fun getNextAvailablePort(basePort: Int): Int {
     return port
 }
 
-suspend fun connectNodes(a: TestNode, b: TestNode) {
+suspend fun connectNodes(a: TestNodecore, b: TestNodecore) {
     a.http.addNode(
         listOf(
             Endpoint(

@@ -5,12 +5,14 @@ import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import nodecore.api.grpc.AdminGrpc
-import nodecore.testframework.ProcessManager
-import nodecore.testframework.buildNodecoreProcess
+import nodecore.testframework.KGenericContainer
+import org.slf4j.LoggerFactory
+import org.testcontainers.containers.BindMode
+import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-class NodeSettings(
+class NodecoreSettings(
     val peerPort: Int,
     val rpcPort: Int,
     val httpPort: Int,
@@ -21,26 +23,45 @@ class NodeSettings(
     val progpowHeight: Int = 0,
 )
 
-class TestNode(
-    val settings: NodeSettings,
-    args: ArrayList<String> = ArrayList(),
-    jvmArgs: ArrayList<String> = ArrayList(),
-) : ProcessManager(
-    name = "node${settings.index}",
-    datadir = File(settings.baseDir, "node${settings.index}"), { datadir ->
-    // specify datadir
-    args.add("-d")
-    args.add(datadir.absolutePath)
-    buildNodecoreProcess(args, jvmArgs)
-}) {
+class TestNodecore(
+    val settings: NodecoreSettings,
+    val version: String
+//    args: ArrayList<String> = ArrayList(),
+//    jvmArgs: ArrayList<String> = ArrayList(),
+) : Closeable, AutoCloseable
+//    ProcessManager(
+//    name = "node${settings.index}",
+//    datadir = File(settings.baseDir, "node${settings.index}"), { datadir ->
+//    // specify datadir
+//    args.add("-d")
+//    args.add(datadir.absolutePath)
+//    buildNodecoreProcess(args, jvmArgs)
+//})
+{
+    val name = "nodecore${settings.index}"
+    var logger = LoggerFactory.getLogger(name)
+    val datadir = File(settings.baseDir, name)
     val nodecoreProperties = File(datadir, "nodecore.properties")
     val rpcTimeout: Long = 30_1000 // ms
+
+    private val containerDatadir = "/data"
+    val container = KGenericContainer("docker-internal.veriblock.com/nodecore:$version")
+        .withNetworkAliases(name)
+        .withNetworkMode("host")
+        .withFileSystemBind(datadir.absolutePath, containerDatadir, BindMode.READ_WRITE);
 
     // Accessor for Admin HTTP API
     val http = NodeHttpApi(name, "127.0.0.1", settings.httpPort)
     val rpc: AdminGrpc.AdminBlockingStub
 
     init {
+        datadir.mkdirs()
+        datadir.setReadable(true, false)
+        datadir.setWritable(true, false)
+        nodecoreProperties.createNewFile()
+        nodecoreProperties.setReadable(true, false)
+        nodecoreProperties.setWritable(true, false)
+
         // setup RPC channel
         rpc = AdminGrpc
             .newBlockingStub(
@@ -74,11 +95,17 @@ class TestNode(
     }
 
     suspend fun start() {
-        this.start { waitForRpcConnection() }
+        container.start()
+        waitForRpcConnection()
     }
 
     suspend fun restart() {
-        this.restart { waitForRpcConnection() }
+        stop()
+        start()
+    }
+
+    fun stop() {
+        container.stop()
     }
 
     private suspend fun waitForRpcConnection() {
@@ -90,11 +117,19 @@ class TestNode(
                     return@withTimeout
                 } catch (e: Exception) {
                     // no connection yet
-                    // repeat every half a second
+                    // repeat every 2 seconds
                     logger.debug("$name waiting for rpc availability... $e")
                     delay(2000L)
                 }
             }
         }
+    }
+
+    override fun close() {
+        stop()
+    }
+
+    protected fun finalize() {
+        close()
     }
 }

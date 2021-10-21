@@ -34,7 +34,7 @@ private val coroutineScope = CoroutineScope(coroutineDispatcher)
 private val selectorManager = ActorSelectorManager(coroutineDispatcher)
 
 private class PeerSocket(
-    val peer: TestNode,
+    val peer: TestNodecore,
     val socket: Socket,
     val onMsg: suspend (ByteArray) -> Unit,
 ) : Closeable, AutoCloseable {
@@ -187,7 +187,7 @@ open class MiniNode : Closeable, AutoCloseable {
         return socket?.peerName
     }
 
-    suspend fun connect(p: TestNode, shouldAnnounce: Boolean = true) {
+    suspend fun connect(p: TestNodecore, shouldAnnounce: Boolean = true) {
         if (socket != null) {
             logger.warn("Already connected to ${peerName()}, disconnect first")
             return

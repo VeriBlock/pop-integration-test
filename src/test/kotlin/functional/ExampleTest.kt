@@ -11,7 +11,7 @@ import nodecore.testframework.BaseIntegrationTest
 import nodecore.testframework.wrapper.nodecore.MiniNode
 import nodecore.testframework.connectNodes
 import nodecore.testframework.randomAddress
-import org.junit.Test
+import kotlin.test.Test
 import org.veriblock.core.utilities.createLogger
 
 private class ExampleMiniNode : MiniNode() {
@@ -21,14 +21,18 @@ private class ExampleMiniNode : MiniNode() {
     }
 }
 
-class ExampleTest : BaseIntegrationTest(2) {
-    override suspend fun setupNetwork() = coroutineScope {
+class ExampleTest : BaseIntegrationTest() {
+    override suspend fun setup() = coroutineScope {
+        addNodecore()
+        addNodecore()
+
+
         // before nodes started, you can append arbitrary values to nodecore.properties
-        nodes[0].nodecoreProperties.appendText("# a comment")
+        nodecores[0].nodecoreProperties.appendText("# a comment")
         // do not overwrite existing settings!
 
         // start nodes in parallel
-        nodes.map {
+        nodecores.map {
             async { it.start() }
         }.awaitAll()
 
@@ -39,39 +43,39 @@ class ExampleTest : BaseIntegrationTest(2) {
         // Topology looks like this:
         // node0 <-- node1 <-- node2 <-- node3
 
-        for (i in 0 until totalNodes - 1) {
-            connectNodes(nodes[i + 1], nodes[i])
+        for (i in 0 until nodecores.size - 1) {
+            connectNodes(nodecores[i + 1], nodecores[i])
         }
 
-        syncAll(nodes)
+        syncAll(nodecores)
     }
 
     override suspend fun runTest() {
         logger.info("Running EXAMPLE test!")
 
         val n = ExampleMiniNode()
-        n.connect(nodes[0])
+        n.connect(nodecores[0])
 
         // upon start both nodes have same last block
-        var info1 = nodes[0].http.getInfo()
-        var info2 = nodes[1].http.getInfo()
+        var info1 = nodecores[0].http.getInfo()
+        var info2 = nodecores[1].http.getInfo()
         info1.lastBlock shouldBe info2.lastBlock
 
         // generate 5 blocks on node0
         val toGenerate = 5
-        nodes[0].http.generateBlocks(toGenerate, randomAddress().toString())
+        nodecores[0].http.generateBlocks(toGenerate, randomAddress().toString())
 
         // best blocks are different
-        info1 = nodes[0].http.getInfo()
-        info2 = nodes[1].http.getInfo()
+        info1 = nodecores[0].http.getInfo()
+        info2 = nodecores[1].http.getInfo()
         info1.lastBlock shouldNotBe info2.lastBlock
 
         // wait until nodes are synced, default timeout is 60 sec
-        syncAll(nodes, timeout = 60_000)
+        syncAll(nodecores, timeout = 60_000)
 
         // best blocks are same
-        info1 = nodes[0].http.getInfo()
-        info2 = nodes[1].http.getInfo()
+        info1 = nodecores[0].http.getInfo()
+        info2 = nodecores[1].http.getInfo()
         info1.lastBlock shouldBe info2.lastBlock
 
         n.stats["ANNOUNCE"] shouldBe 1

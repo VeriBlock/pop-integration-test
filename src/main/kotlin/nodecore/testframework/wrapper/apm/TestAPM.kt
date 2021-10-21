@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import nodecore.testframework.BtcPluginInterface
 import nodecore.testframework.KGenericContainer
 import nodecore.testframework.waitUntil
-import nodecore.testframework.wrapper.nodecore.TestNode
+import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
 import java.io.Closeable
@@ -15,7 +15,7 @@ data class ApmSettings(
     val index: Int,
     val p2pPort: Int,
     val httpPort: Int,
-    val nodecore: TestNode,
+    val nodecore: TestNodecore,
     val btcaltchains: List<BtcPluginInterface>,
     val baseDir: File,
 )
