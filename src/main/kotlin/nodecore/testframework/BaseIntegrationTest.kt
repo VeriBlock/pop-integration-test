@@ -191,7 +191,7 @@ abstract class BaseIntegrationTest() {
                 transactions = nodecores
                     .map { it.http.getPendingTransactions() }
                     .map { tx ->
-                        tx.transactions.map { it.txId }
+                        tx.transactions.map { it.txId }.sorted()
                     }
                 
                 // if all getInfo returned same block,
