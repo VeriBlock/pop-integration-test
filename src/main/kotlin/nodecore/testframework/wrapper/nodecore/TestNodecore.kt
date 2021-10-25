@@ -100,6 +100,9 @@ class TestNodecore(
             .withMaxOutboundMessageSize(20 * 1024 * 1024)
             .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
 
+        //container.followOutput {
+        //    print(it.utf8String)
+        //}
         // TODO: forward into stdout file
 //        logConsumer.withSeparateOutputStreams()
 //        val logConsumer = Slf4jLogConsumer(logger)

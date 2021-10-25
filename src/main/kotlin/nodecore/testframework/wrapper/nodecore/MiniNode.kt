@@ -182,7 +182,6 @@ open class MiniNode : Closeable, AutoCloseable {
         return identity.incrementAndGet().toString()
     }
 
-
     fun peerName(): String? {
         return socket?.peerName
     }
@@ -196,7 +195,7 @@ open class MiniNode : Closeable, AutoCloseable {
         logger.debug("Connecting to node${p.settings.index}")
 
         try {
-            socket = PeerSocket(
+            val socket = PeerSocket(
                 p,
                 aSocket(selectorManager)
                     .tcp()
@@ -213,11 +212,11 @@ open class MiniNode : Closeable, AutoCloseable {
                         .build()
                 }
 
-                socket!!.write(announceMsg)
+                socket.write(announceMsg)
             }
+            this.socket = socket
         } catch (e: Exception) {
             logger.error("Unable to connect to ${peerName()}")
-            socket = null
             throw e
         }
     }
@@ -235,11 +234,12 @@ open class MiniNode : Closeable, AutoCloseable {
     }
 
     fun sendEvent(e: RpcEvent) {
+        val socket = socket
         if (socket?.isRunning() != true) {
             throw Exception("MiniNode is not connected")
         }
 
-        socket!!.write(e)
+        socket.write(e)
     }
 
     private suspend fun handleMessage(buf: ByteArray) {

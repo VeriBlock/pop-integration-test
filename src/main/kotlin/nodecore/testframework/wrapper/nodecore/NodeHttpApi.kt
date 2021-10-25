@@ -1,5 +1,11 @@
 package nodecore.testframework.wrapper.nodecore
 
+import nodecore.api.GetPendingTransactionsReply
+import nodecore.api.SendCoinsReply
+import nodecore.api.SendCoinsRequest
+import nodecore.api.grpc.RpcGetPendingTransactionsReply
+import nodecore.api.grpc.RpcSendCoinsReply
+import nodecore.api.grpc.RpcSendCoinsRequest
 import nodecore.testframework.BaseJsonRpcApi
 import nodecore.testframework.toRequest
 import org.veriblock.sdk.models.Address
@@ -54,9 +60,18 @@ class NodeHttpApi(
         method = "submitpop",
         params = req
     )
-
-    suspend fun submitPop(poptx: VeriBlockPopTransaction, address:Address): ProtocolReply = performRequest(
+    
+    suspend fun submitPop(poptx: VeriBlockPopTransaction, address: Address): ProtocolReply = performRequest(
         method = "submitpop",
         params = poptx.toRequest(address)
+    )
+    
+    suspend fun sendCoins(req: SendCoinsRequest): SendCoinsReply = performRequest(
+        method = "sendcoins",
+        params = req
+    )
+    
+    suspend fun getPendingTransactions(): GetPendingTransactionsReply = performRequest(
+        method = "getpendingtransactions"
     )
 }

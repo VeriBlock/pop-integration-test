@@ -272,6 +272,13 @@ data class TransactionInfo(
 )
 
 @Serializable
+data class SendCoinsRequest(
+    val amounts: List<Output>,
+    val sourceAddress: String? = null,
+    val takeFeeFromOutputs: Boolean = false
+)
+
+@Serializable
 data class SendCoinsReply(
     val success: Boolean,
     val results: List<Result>,

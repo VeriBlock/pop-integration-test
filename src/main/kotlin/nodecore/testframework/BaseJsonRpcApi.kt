@@ -19,7 +19,7 @@ open class BaseJsonRpcApi(
     protected suspend inline fun <reified T> performRequest(
         method: String,
         params: Any? = Collections.EMPTY_MAP
-    ): T = httpClient.post<RpcResponse>() {
+    ): T = httpClient.post<RpcResponse> {
         val jsonBody = JsonRpcRequestBody(
             method = method, params = params
         ).toJson()

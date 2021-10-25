@@ -59,10 +59,10 @@ class ApmHttpApi(val name: String, _host: String, _port: Int) {
         return ret
     }
 
-    private suspend inline fun <reified T, reified U> POST(url: String, _body: U): T {
+    private suspend inline fun <reified T, reified U: Any> POST(url: String, body: U): T {
         logger.debug("$name <--http-- POST $url")
         val ret = client.post<T>(url) {
-            body = _body!!
+            this.body = body
         }
         logger.debug("$name --http--> $ret")
         return ret

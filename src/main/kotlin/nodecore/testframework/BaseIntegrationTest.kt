@@ -13,6 +13,7 @@ import org.testcontainers.containers.Network
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.exitProcess
+import nodecore.api.grpc.utilities.extensions.toHex
 
 enum class TestStatus(val state: String) {
     PASSED("PASSED"),
@@ -55,7 +56,7 @@ abstract class BaseIntegrationTest() {
     // override this function to define network services
     abstract suspend fun setup()
 
-    fun addNodecore(version: String = "0.4.13-rc.2.dev.2"): TestNodecore {
+    fun addNodecore(version: String = "0.4.13-rc.5"): TestNodecore {
         val ncSettings = NodecoreSettings(
             peerPort = baseNodecoreP2pPort++,
             rpcPort = baseNodecoreRpcPort++,
@@ -157,25 +158,49 @@ abstract class BaseIntegrationTest() {
 
         return exitCode
     }
-
-    suspend fun syncAll(nodes: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+    
+    suspend fun syncAll(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+        syncBlocks(nodecores, timeout)
+        syncMempools(nodecores, timeout)
+    }
+    
+    suspend fun syncBlocks(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
         var hashes: List<String> = emptyList()
-
+        
         try {
             waitUntil(timeout = timeout) {
-                hashes = nodes
+                hashes = nodecores
                     .map { it.http.getInfo() }
                     .map { it.lastBlock.hash }
-
+                
                 // if all getInfo returned same block,
                 // then we consider syncAll succeeded
                 return@waitUntil hashes.toSet().size == 1
             }
         } catch (e: TimeoutCancellationException) {
-            logger.error("syncAll failed: ${hashes.joinToString { "\n" }}")
+            logger.error("syncBlocks failed: ${hashes.joinToString { "\n" }}")
             throw e
         }
     }
-
-
+    
+    suspend fun syncMempools(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+        var transactions: List<List<String>> = emptyList()
+        
+        try {
+            waitUntil(timeout = timeout) {
+                transactions = nodecores
+                    .map { it.http.getPendingTransactions() }
+                    .map { tx ->
+                        tx.transactions.map { it.txId }
+                    }
+                
+                // if all getInfo returned same block,
+                // then we consider syncAll succeeded
+                return@waitUntil transactions.toSet().size == 1
+            }
+        } catch (e: TimeoutCancellationException) {
+            logger.error("syncMempools failed: ${transactions.joinToString { "\n" }}")
+            throw e
+        }
+    }
 }
