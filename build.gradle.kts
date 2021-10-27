@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -48,7 +49,7 @@ tasks.test {
     useJUnitPlatform()
     maxParallelForks = 1
     testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = FULL
+    testLogging.exceptionFormat = SHORT
 }
 
 tasks.withType<KotlinCompile> {

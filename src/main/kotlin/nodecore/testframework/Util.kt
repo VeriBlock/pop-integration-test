@@ -35,13 +35,6 @@ fun isPortAvailable(port: Int): Boolean {
     return false
 }
 
-fun getNextAvailablePort(basePort: Int): Int {
-    var port = basePort
-    while (!isPortAvailable(port++)) {
-    }
-    return port
-}
-
 suspend fun connectNodes(a: TestNodecore, b: TestNodecore) {
     a.http.addNode(
         listOf(

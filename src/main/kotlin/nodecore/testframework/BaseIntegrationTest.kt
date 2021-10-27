@@ -20,7 +20,7 @@ enum class TestStatus(val state: String) {
     FAILED("FAILED")
 }
 
-abstract class BaseIntegrationTest() {
+abstract class BaseIntegrationTest {
     private var willCleanup = false
     private var exitCode = 0
     private val progpowStartupTime = System.currentTimeMillis() / 1000 - 1000
@@ -44,7 +44,6 @@ abstract class BaseIntegrationTest() {
     val network: Network = Network.newNetwork()
 
     var status: TestStatus = TestStatus.FAILED
-    var rpcTimeout = 60
 
     // if true, and test passed, will cleanup
     // if false, and test passed, will not cleanup
@@ -105,7 +104,7 @@ abstract class BaseIntegrationTest() {
     }
 
     // entry point for every test
-    suspend fun main() {
+    suspend fun main(): Int {
         try {
             logger.info("Setting base dir ${baseDir.absolutePath}")
 
@@ -129,7 +128,7 @@ abstract class BaseIntegrationTest() {
             status = TestStatus.FAILED
             exitCode = 1
         } finally {
-            exitProcess(exitCode)
+            return shutdown()
         }
     }
 

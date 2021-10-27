@@ -6,7 +6,7 @@ import nodecore.testframework.BaseIntegrationTest
 import nodecore.testframework.BtcPluginInterface
 import kotlin.test.Test
 
-class ExampleApmTest : BaseIntegrationTest() {
+internal class ExampleApmTest : BaseIntegrationTest() {
     override suspend fun runTest() {
         logger.info("Running ExampleApmTest test!")
 
@@ -26,7 +26,7 @@ class ExampleApmTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun run() = runBlocking {
+    fun run(): Unit = runBlocking {
         ExampleApmTest().main()
     }
 }
