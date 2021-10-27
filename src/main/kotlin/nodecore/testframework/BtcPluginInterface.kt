@@ -5,7 +5,7 @@ interface BtcPluginInterface {
     fun payoutAddress(): String
     fun username(): String
     fun password(): String
-    fun id(): Int
+    fun id(): Long
     fun port(): Int
     fun network(): String
     fun payoutDelay(): Int

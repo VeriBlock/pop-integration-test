@@ -1,6 +1,7 @@
 package nodecore.testframework.wrapper.vbtc
 
 import kotlinx.coroutines.runBlocking
+import nodecore.testframework.StdStreamLogger
 import nodecore.testframework.BtcPluginInterface
 import nodecore.testframework.KGenericContainer
 import nodecore.testframework.waitUntil
@@ -18,6 +19,7 @@ class TestVBTC(
 
     val name = "vbtc${settings.index}"
     val datadir = File(settings.baseDir, name)
+    private val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/vbitcoin:$version")
         .withNetworkAliases(name)
         .withNetworkMode("host")
@@ -66,9 +68,6 @@ class TestVBTC(
                 rpcpassword=${settings.password}
 
                 poplogverbosity=info
-                popbtcnetwork=${settings.bitcoinNetwork}
-                popvbknetwork=${settings.veriblockNetwork}
-                popautoconfig=1
                 
                 [regtest]
                 port=${settings.p2pPort}
@@ -80,6 +79,7 @@ class TestVBTC(
 
     suspend fun start() {
         container.start()
+        container.followOutput(stdlog.forward())
         waitForRpcAvailability()
     }
 
@@ -118,10 +118,10 @@ class TestVBTC(
     }
     override fun username(): String = settings.username
     override fun password(): String = settings.password
-    override fun id(): Int = 0x3ae6ca
+    override fun id(): Long = 0x3ae6ca000026ff
     override fun port(): Int = settings.rpcPort
     override fun network(): String = settings.bitcoinNetwork
-    override fun payoutDelay(): Int = 50
+    override fun payoutDelay(): Int = 150
     override fun close() {
         stop()
     }

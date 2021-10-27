@@ -1,6 +1,7 @@
 package nodecore.testframework.wrapper.apm
 
 import kotlinx.coroutines.runBlocking
+import nodecore.testframework.StdStreamLogger
 import nodecore.testframework.BtcPluginInterface
 import nodecore.testframework.KGenericContainer
 import nodecore.testframework.waitUntil
@@ -28,6 +29,7 @@ class TestAPM(
 ) : AutoCloseable, Closeable {
     val name = "apm${settings.index}"
     val datadir = File(settings.baseDir, name)
+    private val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/altchain-pop-miner:$version")
         .withNetworkMode("host")
         .withNetworkAliases(name)
@@ -91,6 +93,7 @@ class TestAPM(
 
     suspend fun start() {
         container.start()
+        container.followOutput(stdlog.forward())
         waitForHttpApiAvailability()
     }
 

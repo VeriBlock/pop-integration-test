@@ -5,11 +5,11 @@ import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import nodecore.api.grpc.AdminGrpc
+import nodecore.testframework.StdStreamLogger
 import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.Network
-import org.testcontainers.containers.output.Slf4jLogConsumer
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -34,6 +34,7 @@ class TestNodecore(
     val name = "nodecore${settings.index}"
     private var logger = LoggerFactory.getLogger(name)
     val datadir = File(settings.baseDir, name)
+    private val stdlog = StdStreamLogger(datadir)
     val nodecoreProperties = File(datadir, "nodecore.properties")
     val rpcTimeout: Long = 30_1000 // ms
 
@@ -86,6 +87,7 @@ class TestNodecore(
 
     suspend fun start() {
         container.start()
+        container.followOutput(stdlog.forward())
 
         http = NodeHttpApi(name, host, httpPort)
         // setup RPC channel
@@ -100,13 +102,7 @@ class TestNodecore(
             .withMaxOutboundMessageSize(20 * 1024 * 1024)
             .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
 
-        //container.followOutput {
-        //    print(it.utf8String)
-        //}
-        // TODO: forward into stdout file
-//        logConsumer.withSeparateOutputStreams()
-//        val logConsumer = Slf4jLogConsumer(logger)
-//        container.followOutput(logConsumer)
+
         waitForRpcConnection()
     }
 

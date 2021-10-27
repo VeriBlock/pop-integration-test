@@ -10,10 +10,14 @@ import nodecore.testframework.wrapper.nodecore.Endpoint
 import nodecore.testframework.wrapper.nodecore.SubmitPopRequest
 import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.output.OutputFrame
 import org.testcontainers.utility.DockerImageName
 import org.veriblock.core.wallet.AddressKeyGenerator
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
+import java.io.File
+import java.io.OutputStream
+import java.io.PrintWriter
 import java.net.ServerSocket
 import java.security.KeyPair
 import java.util.concurrent.TimeoutException
