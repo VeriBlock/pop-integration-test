@@ -89,7 +89,7 @@ abstract class BaseIntegrationTest() {
         return apm
     }
 
-    fun addVBTC(version: String = "refs.pull.585.merge-d72afa0"): TestVBTC {
+    fun addVBTC(version: String = "master-6636dc0"): TestVBTC {
         val settings = VBtcSettings(
             p2pPort = baseBtcP2pPort++,
             rpcPort = baseBtcRpcPort++,
