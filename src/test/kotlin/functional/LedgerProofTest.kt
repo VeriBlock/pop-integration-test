@@ -47,7 +47,7 @@ class LedgerProofTest : BaseIntegrationTest() {
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
 
-        nodecores[0].http.generateBlocks(10, addr1.toString())
+        nodecores[0].http.generateBlocks(100, addr1.toString())
 
         val req = RpcEvent.newBuilder()
             .setLedgerProofRequest(
