@@ -5,12 +5,11 @@ import nodecore.testframework.StdStreamLogger
 import nodecore.testframework.BtcPluginInterface
 import nodecore.testframework.KGenericContainer
 import nodecore.testframework.waitUntil
+import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
 import org.veriblock.core.utilities.createLogger
 import java.io.Closeable
 import java.io.File
-
-private val logger = createLogger {  }
 
 class TestVBTC(
     val settings: VBtcSettings,
@@ -19,6 +18,7 @@ class TestVBTC(
 
     val name = "vbtc${settings.index}"
     val datadir = File(settings.baseDir, name)
+    private var logger = createLogger { name }
     val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/vbitcoin:$version")
         .withNetworkAliases(name)
