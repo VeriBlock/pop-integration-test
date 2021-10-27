@@ -34,7 +34,7 @@ class TestNodecore(
     val name = "nodecore${settings.index}"
     private var logger = LoggerFactory.getLogger(name)
     val datadir = File(settings.baseDir, name)
-    private val stdlog = StdStreamLogger(datadir)
+    val stdlog = StdStreamLogger(datadir)
     val nodecoreProperties = File(datadir, "nodecore.properties")
     val rpcTimeout: Long = 30_1000 // ms
 

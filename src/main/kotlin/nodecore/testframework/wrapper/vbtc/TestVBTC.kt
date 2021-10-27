@@ -19,7 +19,7 @@ class TestVBTC(
 
     val name = "vbtc${settings.index}"
     val datadir = File(settings.baseDir, name)
-    private val stdlog = StdStreamLogger(datadir)
+    val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/vbitcoin:$version")
         .withNetworkAliases(name)
         .withNetworkMode("host")

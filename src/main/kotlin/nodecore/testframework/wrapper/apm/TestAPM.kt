@@ -29,7 +29,7 @@ class TestAPM(
 ) : AutoCloseable, Closeable {
     val name = "apm${settings.index}"
     val datadir = File(settings.baseDir, name)
-    private val stdlog = StdStreamLogger(datadir)
+    val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/altchain-pop-miner:$version")
         .withNetworkMode("host")
         .withNetworkAliases(name)

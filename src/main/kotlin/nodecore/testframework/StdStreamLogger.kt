@@ -11,6 +11,7 @@ class StdStreamLogger(
     private val stderr = File(datadir, "stderr")
     private val stdoutwriter: PrintWriter
     private val stderrwriter: PrintWriter
+    var useConsole = false
 
     init {
         stdout.createNewFile()
@@ -23,10 +24,12 @@ class StdStreamLogger(
     fun forward(): (OutputFrame) -> Unit = {
         when (it.type) {
             OutputFrame.OutputType.STDOUT -> {
+                if(useConsole) print(it.utf8String)
                 stdoutwriter.print(it.utf8String)
                 stdoutwriter.flush()
             }
             OutputFrame.OutputType.STDERR -> {
+                if(useConsole) System.err.print(it.utf8String)
                 stderrwriter.print(it.utf8String)
                 stderrwriter.flush()
             }
