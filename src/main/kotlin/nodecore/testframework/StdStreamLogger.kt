@@ -14,6 +14,12 @@ class StdStreamLogger(
     var useConsole = false
 
     init {
+        if (!datadir.exists()) {
+            datadir.mkdirs()
+            datadir.setReadable(true, false)
+            datadir.setWritable(true, false)
+        }
+
         stdout.createNewFile()
         stderr.createNewFile()
 

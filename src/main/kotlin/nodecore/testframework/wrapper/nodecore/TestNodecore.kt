@@ -10,7 +10,6 @@ import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.Network
-import org.veriblock.core.utilities.createLogger
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -28,12 +27,12 @@ class NodecoreSettings(
 
 class TestNodecore(
     val settings: NodecoreSettings,
-    val version: String,
-    private val network: Network
+    version: String,
+    network: Network
 ) : Closeable, AutoCloseable
 {
     val name = "nodecore${settings.index}"
-    private var logger = createLogger { name }
+    private val logger = LoggerFactory.getLogger(name)
     val datadir = File(settings.baseDir, name)
     val stdlog = StdStreamLogger(datadir)
     val nodecoreProperties = File(datadir, "nodecore.properties")

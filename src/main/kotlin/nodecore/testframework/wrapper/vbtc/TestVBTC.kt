@@ -7,18 +7,17 @@ import nodecore.testframework.KGenericContainer
 import nodecore.testframework.waitUntil
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
-import org.veriblock.core.utilities.createLogger
 import java.io.Closeable
 import java.io.File
 
 class TestVBTC(
     val settings: VBtcSettings,
-    val version: String
+    version: String
 ): BtcPluginInterface, Closeable, AutoCloseable {
 
     val name = "vbtc${settings.index}"
     val datadir = File(settings.baseDir, name)
-    private var logger = createLogger { name }
+    private val logger = LoggerFactory.getLogger(name)
     val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/vbitcoin:$version")
         .withNetworkAliases(name)
@@ -102,7 +101,7 @@ class TestVBTC(
                 rpc.getBlockchainInfo()
                 return@waitUntil true
             } catch(e: Exception) {
-                logger.debug { "failed... $e" }
+                logger.debug("failed... $e")
                 return@waitUntil false
             }
         }
