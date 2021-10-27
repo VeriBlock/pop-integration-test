@@ -65,16 +65,13 @@ class LedgerProofTest : BaseIntegrationTest() {
         val reply = n.reply!!
 
         logger.debug(reply.toString())
-
-        reply.proofsCount shouldBe 3
+        reply.proofsCount shouldBe 2
         val list = reply.proofsList
 
         // first must be valid addr, which has 100 blocks worth of VBK
         checkProofOfExistence(list[0])
         // second address does not exist
         checkProofOfNonExistence(list[1])
-        // third address is invalid
-        checkInvalidAddr(list[2])
     }
 
     fun checkProofOfExistence(e: LedgerProofResult) {
