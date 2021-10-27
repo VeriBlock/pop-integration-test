@@ -21,7 +21,7 @@ private class ExampleMiniNode : MiniNode() {
     }
 }
 
-class ExampleTest : BaseIntegrationTest() {
+internal class ExampleTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
         addNodecore()
         addNodecore()
@@ -83,7 +83,7 @@ class ExampleTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun run() = runBlocking {
+    fun run(): Unit = runBlocking {
         ExampleTest().main()
     }
 }

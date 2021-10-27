@@ -14,7 +14,7 @@ import kotlin.test.Test
 import org.veriblock.extensions.ledger.LedgerProofWithContext
 import org.veriblock.sdk.models.Address
 
-class LedgerProofVerifier : MiniNode() {
+private class LedgerProofVerifier : MiniNode() {
     var reply: RpcLedgerProofReply? = null
 
     override suspend fun onEvent(e: RpcEvent) {
@@ -24,7 +24,7 @@ class LedgerProofVerifier : MiniNode() {
     }
 }
 
-class LedgerProofTest : BaseIntegrationTest() {
+internal class LedgerProofTest : BaseIntegrationTest() {
     // exists, has VBK
     val addr1 = randomAddress()
 
@@ -102,7 +102,7 @@ class LedgerProofTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun run() = runBlocking {
+    fun run(): Unit = runBlocking {
         LedgerProofTest().main()
     }
 }

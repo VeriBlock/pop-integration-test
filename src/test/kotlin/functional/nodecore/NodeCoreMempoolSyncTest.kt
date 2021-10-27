@@ -96,7 +96,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun run() = runBlocking {
+    fun run(): Unit = runBlocking {
         NodeCoreMempoolSyncTest().main()
     }
 }
