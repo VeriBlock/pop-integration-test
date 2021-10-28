@@ -66,7 +66,7 @@ abstract class BaseIntegrationTest {
             network = "regtest"
         )
 
-        val nc = TestNodecore(ncSettings, version, network)
+        val nc = TestNodecore(ncSettings, version)
         nodecores.add(nc)
         logger.info("Setting up ${nc.name} with network=${ncSettings.network}")
         return nc

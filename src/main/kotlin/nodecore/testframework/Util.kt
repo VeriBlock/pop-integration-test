@@ -39,10 +39,7 @@ suspend fun connectNodes(a: TestNodecore, b: TestNodecore) {
     a.http.addNode(
         listOf(
             Endpoint(
-                // use b.name instead of b.host, because
-                // B is visible as "b.name" to A in docker network
-                address = b.name,
-                // use internal port (for docker<->docker interaction)
+                address = "127.0.0.1",
                 port = b.settings.peerPort
             )
         )
