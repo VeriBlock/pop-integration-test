@@ -33,7 +33,7 @@ class TestVBTC(
         settings.rpcPort,
         settings.username,
         settings.password,
-        30000
+        60000
     )
 
 
