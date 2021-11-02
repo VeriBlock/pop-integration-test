@@ -31,7 +31,7 @@ class HttpAuthConfig(
     val password: String
 )
 
-fun createHttpClient(authConfig: HttpAuthConfig? = null, contentTypes: List<ContentType>? = null, timeoutMillis: Long? = 0) = HttpClient(CIO) {
+fun createHttpClient(authConfig: HttpAuthConfig? = null, contentTypes: List<ContentType>? = null, timeoutMillis: Long = 0) = HttpClient(CIO) {
     install(JsonFeature) {
         if (contentTypes != null) {
             acceptContentTypes = contentTypes
@@ -45,7 +45,7 @@ fun createHttpClient(authConfig: HttpAuthConfig? = null, contentTypes: List<Cont
             }
         }
     }
-    if (timeoutMillis?.compareTo(0) != 0) {
+    if (timeoutMillis > 0) {
         install(HttpTimeout) {
             requestTimeoutMillis = timeoutMillis
         }

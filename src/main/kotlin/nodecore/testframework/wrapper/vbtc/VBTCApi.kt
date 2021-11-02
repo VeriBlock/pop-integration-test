@@ -8,7 +8,7 @@ class VBTCApi(
     port: Int,
     username: String,
     password: String,
-    timeoutMillis: Long? = 0
+    timeoutMillis: Long = 0
 ) : BaseJsonRpcApi(
     name, host, port, "", username, password, timeoutMillis
 ) {
