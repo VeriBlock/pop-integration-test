@@ -11,10 +11,11 @@ open class BaseJsonRpcApi(
     port: Int,
     suffix: String = "",
     username: String = "",
-    password: String = ""
+    password: String = "",
+    timeoutMillis: Long? = 0
 ) {
     protected val apiConfig = HttpApiConfig("http://${host}:${port}/${suffix}")
-    protected val httpClient = createHttpClient(HttpAuthConfig(username, password))
+    protected val httpClient = createHttpClient(HttpAuthConfig(username, password), timeoutMillis = timeoutMillis)
 
     protected suspend inline fun <reified T> performRequest(
         method: String,

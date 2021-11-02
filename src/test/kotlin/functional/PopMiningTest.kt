@@ -1,8 +1,7 @@
 package functional
 
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import nodecore.testframework.*
 import nodecore.testframework.wrapper.apm.MineRequest
 import nodecore.testframework.wrapper.nodecore.TestNodecore
@@ -16,6 +15,7 @@ import org.veriblock.core.utilities.extensions.asHexBytes
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.services.SerializeDeserializeService
 import java.security.Security
+import kotlin.time.ExperimentalTime
 
 class PopMiningTest : BaseIntegrationTest() {
     init {
@@ -52,11 +52,24 @@ class PopMiningTest : BaseIntegrationTest() {
     }
 
     override suspend fun setup() = coroutineScope {
-        val nodecore = addNodecore()
-        nodecore.start()
+        addNodecore()
+        addNodecore()
+
+        // start nodes in parallel
+        nodecores.map {
+            async { it.start() }
+        }.awaitAll()
+
+        for (i in 0 until nodecores.size - 1) {
+            connectNodes(nodecores[i + 1], nodecores[i])
+        }
 
         val vbtc = addVBTC()
         vbtc.start()
+        // mine until pop activation height
+        // TODO: get pop activation height from vbtc
+        logger.info("Generating 200 vBTC blocks")
+        vbtcs[0].rpc.generateToAddress(200, vbtcs[0].rpc.getNewAddress())
 
         val apm = addAPM(nodecores[0], listOf(vbtc))
         apm.start()
@@ -82,7 +95,8 @@ class PopMiningTest : BaseIntegrationTest() {
             endorseVbkTip(nodecores[0], address = ncAddress)
         }
 
-        val operation = apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 10))
+        waitUntil(timeout = 120_000L) { apms[0].http.getMinerInfo().status.isReady }
+        val operation = apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 210)) // TODO: height = popActvationHeight + mined vbtc blocks
 
         logger.info("waiting until APM submits endorsement TX")
         waitUntil(delay = 5000L) {
@@ -97,16 +111,17 @@ class PopMiningTest : BaseIntegrationTest() {
 
         // generate containing block
         logger.info("waiting until ATV is confirmed in VeriBlock...")
-        waitUntil(delay = 5000L) {
+        waitUntil(timeout = 240_000L, delay = 5000L) {
             nodecores[0].http.generateBlocks(1, ncAddress.toString())
+            waitUntil(timeout = 120_000L) { apms[0].http.getMinerInfo().status.isReady }
             val op = apms[0].http.getOperation(operation.operationId)
-            return@waitUntil op.task == "Confirm ATV"
+            return@waitUntil op.state == "VBK Publications submitted"
         }
 
         val lastBlockHeight = nodecores[0].http.getInfo().lastBlock.number;
 
         logger.info("waiting until APM sends all lacking VBK context blocks, $TOTAL_VTBS VTBs and 1 ATV")
-        waitUntil(delay = 5000L) {
+        waitUntil(timeout = 120_000L, delay = 5000L) {
             val popmp = vbtcs[0].rpc.getRawPopMempool()
             // total number of VBK blocks in mempool must be `lastBlockHeight - 1`
             popmp.vbkblocks.size != lastBlockHeight - 1 /* genesis */ && popmp.vtbs.size >= TOTAL_VTBS &&  popmp.atvs.isNotEmpty()

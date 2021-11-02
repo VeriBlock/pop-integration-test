@@ -7,9 +7,10 @@ class VBTCApi(
     host: String,
     port: Int,
     username: String,
-    password: String
+    password: String,
+    timeoutMillis: Long? = 0
 ) : BaseJsonRpcApi(
-    name, host, port, "", username, password
+    name, host, port, "", username, password, timeoutMillis
 ) {
 
     suspend fun getBlockchainInfo(): BlockchainInfoReply = performRequest(
