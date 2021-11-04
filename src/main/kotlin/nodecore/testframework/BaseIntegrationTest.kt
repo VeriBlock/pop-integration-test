@@ -159,8 +159,7 @@ abstract class BaseIntegrationTest {
         try {
             waitUntil(timeout = timeout) {
                 statuses = apms
-                    .map { it.http.getMinerInfo() }
-                    .map { it.status.isReady }
+                    .map { it.http.getMinerInfo().status.isReady }
 
                 // if all getInfo returned same block,
                 // then we consider syncAll succeeded
