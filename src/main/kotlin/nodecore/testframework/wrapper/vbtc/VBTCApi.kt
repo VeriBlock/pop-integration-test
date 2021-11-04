@@ -29,4 +29,8 @@ class VBTCApi(
     suspend fun getRawPopMempool(): GetRawPopMempoolReply = performRequest(
         method = "getrawpopmempool"
     )
+
+    suspend fun getPopParams(): GetPopParamsResponse = performRequest(
+        method = "getpopparams"
+    )
 }

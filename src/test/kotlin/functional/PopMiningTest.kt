@@ -66,10 +66,7 @@ class PopMiningTest : BaseIntegrationTest() {
 
         val vbtc = addVBTC()
         vbtc.start()
-        // mine until pop activation height
-        // TODO: get pop activation height from vbtc
-        logger.info("Generating 200 vBTC blocks")
-        vbtcs[0].rpc.generateToAddress(200, vbtcs[0].rpc.getNewAddress())
+        vbtc.mineUntilPopEnabled()
 
         val apm = addAPM(nodecores[0], listOf(vbtc))
         apm.start()

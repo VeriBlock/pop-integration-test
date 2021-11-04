@@ -16,6 +16,8 @@ class TestVBTC(
 ): BtcPluginInterface, Closeable, AutoCloseable {
 
     val name = "btcsq${settings.index}"
+    var address: String = ""
+
     val datadir = File(settings.baseDir, name)
     private val logger = LoggerFactory.getLogger(name)
     val stdlog = StdStreamLogger(datadir)
@@ -124,5 +126,22 @@ class TestVBTC(
     override fun payoutDelay(): Int = 150
     override fun close() {
         stop()
+    }
+
+    suspend fun getNewAddress(): String {
+        address = rpc.getNewAddress()
+        return address
+    }
+
+    suspend fun getAddress(): String {
+        if (address == "") {
+            return getNewAddress()
+        }
+        return address
+    }
+
+    suspend fun mineUntilPopEnabled() {
+        val popActivationHeight = rpc.getPopParams().popActivationHeight
+        rpc.generateToAddress(popActivationHeight, getAddress())
     }
 }
