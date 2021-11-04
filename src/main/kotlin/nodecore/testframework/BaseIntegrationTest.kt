@@ -9,12 +9,7 @@ import nodecore.testframework.wrapper.vbtc.TestVBTC
 import nodecore.testframework.wrapper.vbtc.VBtcSettings
 import org.junit.ComparisonFailure
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.Network
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.system.exitProcess
-import nodecore.api.grpc.utilities.extensions.toHex
-import nodecore.testframework.wrapper.apm.ApmHttpApi
 
 enum class TestStatus(val state: String) {
     PASSED("PASSED"),
