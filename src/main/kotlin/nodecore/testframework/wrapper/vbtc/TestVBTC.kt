@@ -115,8 +115,10 @@ class TestVBTC(
         check(isAlive()) {
             "VBTC must be started before getting payout address"
         }
-
-        return runBlocking { rpc.getNewAddress() }
+        if (address == "") {
+            return runBlocking { getNewAddress() }
+        }
+        return address
     }
     override fun username(): String = settings.username
     override fun password(): String = settings.password
@@ -129,19 +131,18 @@ class TestVBTC(
     }
 
     suspend fun getNewAddress(): String {
+        check(isAlive()) {
+            "VBTC must be started before getting payout address"
+        }
         address = rpc.getNewAddress()
         return address
     }
 
-    suspend fun getAddress(): String {
-        if (address == "") {
-            return getNewAddress()
-        }
-        return address
-    }
-
     suspend fun mineUntilPopEnabled() {
+        check(isAlive()) {
+            "VBTC must be started before getting payout address"
+        }
         val popActivationHeight = rpc.getPopParams().popActivationHeight
-        rpc.generateToAddress(popActivationHeight, getAddress())
+        rpc.generateToAddress(popActivationHeight, payoutAddress())
     }
 }

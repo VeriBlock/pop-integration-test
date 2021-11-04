@@ -76,7 +76,7 @@ class PopMiningTest : BaseIntegrationTest() {
         logger.info("Running PopMiningTest test!")
 
         logger.info("Generating 10 vBTC blocks")
-        val vbtcAddr = vbtcs[0].rpc.getNewAddress()
+        val vbtcAddr = vbtcs[0].payoutAddress()
         vbtcs[0].rpc.generateToAddress(10, vbtcAddr)
 
         logger.info("Sending VBK to APM address ${apms[0].vbkAddress}")
