@@ -182,8 +182,7 @@ abstract class BaseIntegrationTest {
         try {
             waitUntil(timeout = timeout) {
                 hashes = nodecores
-                    .map { it.http.getInfo() }
-                    .map { it.lastBlock.hash }
+                    .map { it.http.getInfo().lastBlock.hash }
                 
                 // if all getInfo returned same block,
                 // then we consider syncAll succeeded
@@ -201,9 +200,9 @@ abstract class BaseIntegrationTest {
         try {
             waitUntil(timeout = timeout) {
                 transactions = nodecores
-                    .map { it.http.getPendingTransactions() }
-                    .map { tx ->
-                        tx.transactions.map { it.txId }.sorted()
+                    .map {
+                        it.http.getPendingTransactions()
+                            .transactions.map { it.txId }.sorted()
                     }
                 
                 // if all getInfo returned same block,
