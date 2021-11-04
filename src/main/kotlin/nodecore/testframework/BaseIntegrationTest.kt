@@ -14,6 +14,7 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.exitProcess
 import nodecore.api.grpc.utilities.extensions.toHex
+import nodecore.testframework.wrapper.apm.ApmHttpApi
 
 enum class TestStatus(val state: String) {
     PASSED("PASSED"),
@@ -41,7 +42,6 @@ abstract class BaseIntegrationTest {
     val baseDir: File = createTempDir(
         prefix = "veriblock_${System.currentTimeMillis()}_",
     )
-    val network: Network = Network.newNetwork()
 
     var status: TestStatus = TestStatus.FAILED
 
@@ -157,8 +157,32 @@ abstract class BaseIntegrationTest {
 
         return exitCode
     }
-    
-    suspend fun syncAll(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+
+    suspend fun syncAll(nodecores: List<TestNodecore>, apms: List<TestAPM> , timeout: Long = 60_000 /*ms*/) {
+        syncNodecores(nodecores, timeout)
+        syncApms(apms, timeout)
+    }
+
+    suspend fun syncApms(apms: List<TestAPM>, timeout: Long = 60_000 /*ms*/) {
+        var statuses: List<Boolean> = emptyList()
+
+        try {
+            waitUntil(timeout = timeout) {
+                statuses = apms
+                    .map { it.http.getMinerInfo() }
+                    .map { it.status.isReady }
+
+                // if all getInfo returned same block,
+                // then we consider syncAll succeeded
+                return@waitUntil statuses.all { it }
+            }
+        } catch (e: TimeoutCancellationException) {
+            logger.error("syncBlocks failed: ${statuses.joinToString { "\n" }}")
+            throw e
+        }
+    }
+
+    suspend fun syncNodecores(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
         syncBlocks(nodecores, timeout)
         syncMempools(nodecores, timeout)
     }
