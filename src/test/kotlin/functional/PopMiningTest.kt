@@ -15,7 +15,6 @@ import org.veriblock.core.utilities.extensions.asHexBytes
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.services.SerializeDeserializeService
 import java.security.Security
-import kotlin.time.ExperimentalTime
 
 class PopMiningTest : BaseIntegrationTest() {
     init {
@@ -95,7 +94,7 @@ class PopMiningTest : BaseIntegrationTest() {
             endorseVbkTip(nodecores[0], address = ncAddress)
         }
 
-        syncApms(apms)
+        syncAllApms(apms)
         val operation = apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 210)) // TODO: height = popActvationHeight + mined vbtc blocks
 
         logger.info("waiting until APM submits endorsement TX")

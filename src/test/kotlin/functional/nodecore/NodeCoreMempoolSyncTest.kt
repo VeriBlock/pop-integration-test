@@ -38,7 +38,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
             connectNodes(nodecores[i + 1], nodecores[i])
         }
 
-        syncNodecores(nodecores)
+        syncAllNodecores(nodecores)
     }
 
     override suspend fun runTest() {
@@ -62,7 +62,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
         info1.lastBlock shouldNotBe info2.lastBlock
 
         // wait until nodes are synced, default timeout is 60 sec
-        syncNodecores(nodecores, timeout = 60_000)
+        syncAllNodecores(nodecores, timeout = 60_000)
 
         // send coins
         val sendCoinsReply = nodecores[0].http.sendCoins(
@@ -83,7 +83,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
         addNodecore().start()
         connectNodes(nodecores[1], nodecores[2])
         
-        syncNodecores(nodecores)
+        syncAllNodecores(nodecores)
     }
 
     @Test

@@ -154,11 +154,11 @@ abstract class BaseIntegrationTest {
     }
 
     suspend fun syncAll(nodecores: List<TestNodecore>, apms: List<TestAPM> , timeout: Long = 60_000 /*ms*/) {
-        syncNodecores(nodecores, timeout)
-        syncApms(apms, timeout)
+        syncAllNodecores(nodecores, timeout)
+        syncAllApms(apms, timeout)
     }
 
-    suspend fun syncApms(apms: List<TestAPM>, timeout: Long = 60_000 /*ms*/) {
+    suspend fun syncAllApms(apms: List<TestAPM>, timeout: Long = 60_000 /*ms*/) {
         var statuses: List<Boolean> = emptyList()
 
         try {
@@ -177,7 +177,7 @@ abstract class BaseIntegrationTest {
         }
     }
 
-    suspend fun syncNodecores(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+    suspend fun syncAllNodecores(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
         syncBlocks(nodecores, timeout)
         syncMempools(nodecores, timeout)
     }
