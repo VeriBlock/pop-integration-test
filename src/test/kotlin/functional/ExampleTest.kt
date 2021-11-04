@@ -46,7 +46,7 @@ internal class ExampleTest : BaseIntegrationTest() {
             connectNodes(nodecores[i + 1], nodecores[i])
         }
 
-        syncAll(nodecores)
+        syncAllNodecores(nodecores)
     }
 
     override suspend fun runTest() {
@@ -70,7 +70,7 @@ internal class ExampleTest : BaseIntegrationTest() {
         info1.lastBlock shouldNotBe info2.lastBlock
 
         // wait until nodes are synced, default timeout is 60 sec
-        syncAll(nodecores, timeout = 60_000)
+        syncAllNodecores(nodecores, timeout = 60_000)
 
         // best blocks are same
         info1 = nodecores[0].http.getInfo()

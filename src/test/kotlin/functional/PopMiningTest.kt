@@ -15,7 +15,6 @@ import org.veriblock.core.utilities.extensions.asHexBytes
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.services.SerializeDeserializeService
 import java.security.Security
-import kotlin.time.ExperimentalTime
 
 class PopMiningTest : BaseIntegrationTest() {
     init {
@@ -95,7 +94,7 @@ class PopMiningTest : BaseIntegrationTest() {
             endorseVbkTip(nodecores[0], address = ncAddress)
         }
 
-        waitUntil(timeout = 120_000L) { apms[0].http.getMinerInfo().status.isReady }
+        syncAllApms(apms)
         val operation = apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 210)) // TODO: height = popActvationHeight + mined vbtc blocks
 
         logger.info("waiting until APM submits endorsement TX")
@@ -113,7 +112,7 @@ class PopMiningTest : BaseIntegrationTest() {
         logger.info("waiting until ATV is confirmed in VeriBlock...")
         waitUntil(timeout = 240_000L, delay = 5000L) {
             nodecores[0].http.generateBlocks(1, ncAddress.toString())
-            waitUntil(timeout = 120_000L) { apms[0].http.getMinerInfo().status.isReady }
+            syncAllApms(apms)
             val op = apms[0].http.getOperation(operation.operationId)
             return@waitUntil op.state == "VBK Publications submitted"
         }
@@ -127,7 +126,7 @@ class PopMiningTest : BaseIntegrationTest() {
             popmp.vbkblocks.size != lastBlockHeight - 1 /* genesis */ && popmp.vtbs.size >= TOTAL_VTBS &&  popmp.atvs.isNotEmpty()
         }
 
-        val containingHash = vbtcs[0].rpc.generateToAddress(1, address = vbtcAddr)[0]
+        vbtcs[0].rpc.generateToAddress(1, address = vbtcAddr)[0]
 
         // all pop-payloads mined, mempool is empty
         val popmp = vbtcs[0].rpc.getRawPopMempool()

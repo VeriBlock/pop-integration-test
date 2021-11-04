@@ -7,20 +7,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import nodecore.api.grpc.RpcEvent
 import nodecore.testframework.BaseIntegrationTest
-import nodecore.testframework.wrapper.nodecore.MiniNode
 import nodecore.testframework.connectNodes
-import nodecore.testframework.randomAddress
 import kotlin.test.Test
 import nodecore.api.Output
 import nodecore.api.SendCoinsRequest
-import nodecore.api.grpc.RpcOutput
-import nodecore.api.grpc.RpcSendCoinsRequest
-import nodecore.api.grpc.utilities.extensions.asHexByteString
-import nodecore.api.grpc.utilities.extensions.toHex
-import nodecore.testframework.toByteString
-import org.veriblock.core.utilities.createLogger
 
 class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
@@ -47,7 +38,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
             connectNodes(nodecores[i + 1], nodecores[i])
         }
 
-        syncAll(nodecores)
+        syncAllNodecores(nodecores)
     }
 
     override suspend fun runTest() {
@@ -71,7 +62,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
         info1.lastBlock shouldNotBe info2.lastBlock
 
         // wait until nodes are synced, default timeout is 60 sec
-        syncAll(nodecores, timeout = 60_000)
+        syncAllNodecores(nodecores, timeout = 60_000)
 
         // send coins
         val sendCoinsReply = nodecores[0].http.sendCoins(
@@ -92,7 +83,7 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
         addNodecore().start()
         connectNodes(nodecores[1], nodecores[2])
         
-        syncAll(nodecores)
+        syncAllNodecores(nodecores)
     }
 
     @Test
