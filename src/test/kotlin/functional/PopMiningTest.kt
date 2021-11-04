@@ -112,7 +112,7 @@ class PopMiningTest : BaseIntegrationTest() {
         logger.info("waiting until ATV is confirmed in VeriBlock...")
         waitUntil(timeout = 240_000L, delay = 5000L) {
             nodecores[0].http.generateBlocks(1, ncAddress.toString())
-            syncAll(nodecores, apms)
+            syncAllApms(apms)
             val op = apms[0].http.getOperation(operation.operationId)
             return@waitUntil op.state == "VBK Publications submitted"
         }

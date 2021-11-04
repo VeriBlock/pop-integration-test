@@ -153,11 +153,6 @@ abstract class BaseIntegrationTest {
         return exitCode
     }
 
-    suspend fun syncAll(nodecores: List<TestNodecore>, apms: List<TestAPM> , timeout: Long = 60_000 /*ms*/) {
-        syncAllNodecores(nodecores, timeout)
-        syncAllApms(apms, timeout)
-    }
-
     suspend fun syncAllApms(apms: List<TestAPM>, timeout: Long = 60_000 /*ms*/) {
         var statuses: List<Boolean> = emptyList()
 
