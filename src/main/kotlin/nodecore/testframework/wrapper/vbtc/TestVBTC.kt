@@ -16,8 +16,6 @@ class TestVBTC(
 ): BtcPluginInterface, Closeable, AutoCloseable {
 
     val name = "btcsq${settings.index}"
-    var address: String = ""
-
     val datadir = File(settings.baseDir, name)
     private val logger = LoggerFactory.getLogger(name)
     val stdlog = StdStreamLogger(datadir)
@@ -115,10 +113,8 @@ class TestVBTC(
         check(isAlive()) {
             "VBTC must be started before getting payout address"
         }
-        if (address == "") {
-            return runBlocking { getNewAddress() }
-        }
-        return address
+
+        return runBlocking { rpc.getNewAddress() }
     }
     override fun username(): String = settings.username
     override fun password(): String = settings.password
@@ -128,14 +124,6 @@ class TestVBTC(
     override fun payoutDelay(): Int = 150
     override fun close() {
         stop()
-    }
-
-    suspend fun getNewAddress(): String {
-        check(isAlive()) {
-            "VBTC must be started before getting payout address"
-        }
-        address = rpc.getNewAddress()
-        return address
     }
 
     suspend fun mineUntilPopEnabled() {
