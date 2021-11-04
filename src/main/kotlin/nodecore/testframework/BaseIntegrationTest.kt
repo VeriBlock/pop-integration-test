@@ -66,13 +66,13 @@ abstract class BaseIntegrationTest {
             network = "regtest"
         )
 
-        val nc = TestNodecore(ncSettings, version, network)
+        val nc = TestNodecore(ncSettings, version)
         nodecores.add(nc)
         logger.info("Setting up ${nc.name} with network=${ncSettings.network}")
         return nc
     }
 
-    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.2.dev.2"): TestAPM {
+    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.5"): TestAPM {
         val apmSettings = ApmSettings(
             index = apms.size,
             p2pPort = baseApmP2pPort++,

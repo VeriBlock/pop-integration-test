@@ -8,10 +8,8 @@ import nodecore.testframework.waitUntil
 import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
-import org.veriblock.core.utilities.createLogger
 import java.io.Closeable
 import java.io.File
-import java.util.logging.Logger
 
 data class ApmSettings(
     // if there are multiple APMs, then this is its index in a list
@@ -37,6 +35,8 @@ class TestAPM(
         .withNetworkAliases(name)
         .withFileSystemBind(datadir.absolutePath, "/data", BindMode.READ_WRITE)
         .withCreateContainerCmdModifier { it.withTty(true) }
+        .withEnv("APM_LOG_LEVEL", "DEBUG")
+        .withEnv("APM_CONSOLE_LOG_LEVEL", "DEBUG")
 
 
     val applicationConf = File(datadir, "application.conf")

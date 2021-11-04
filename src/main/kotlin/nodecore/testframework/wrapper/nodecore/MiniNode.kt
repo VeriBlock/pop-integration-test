@@ -191,7 +191,7 @@ open class MiniNode : Closeable, AutoCloseable {
             logger.warn("Already connected to ${peerName()}, disconnect first")
             return
         }
-        val address = NetworkAddress(p.host, p.peerPort)
+        val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
         logger.debug("Connecting to node${p.settings.index}")
 
         try {

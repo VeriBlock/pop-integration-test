@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.features.*
 import io.ktor.client.features.auth.Auth
 import io.ktor.client.features.auth.providers.basic
 import io.ktor.client.features.json.JsonFeature
@@ -30,7 +31,7 @@ class HttpAuthConfig(
     val password: String
 )
 
-fun createHttpClient(authConfig: HttpAuthConfig? = null, contentTypes: List<ContentType>? = null) = HttpClient(CIO) {
+fun createHttpClient(authConfig: HttpAuthConfig? = null, contentTypes: List<ContentType>? = null, timeoutMillis: Long = 0) = HttpClient(CIO) {
     install(JsonFeature) {
         if (contentTypes != null) {
             acceptContentTypes = contentTypes
@@ -42,6 +43,11 @@ fun createHttpClient(authConfig: HttpAuthConfig? = null, contentTypes: List<Cont
                 username = authConfig.username
                 password = authConfig.password
             }
+        }
+    }
+    if (timeoutMillis > 0) {
+        install(HttpTimeout) {
+            requestTimeoutMillis = timeoutMillis
         }
     }
 }

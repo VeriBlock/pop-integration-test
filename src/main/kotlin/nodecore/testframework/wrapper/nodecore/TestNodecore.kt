@@ -9,7 +9,6 @@ import nodecore.testframework.StdStreamLogger
 import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
-import org.testcontainers.containers.Network
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -28,7 +27,6 @@ class NodecoreSettings(
 class TestNodecore(
     val settings: NodecoreSettings,
     version: String,
-    network: Network
 ) : Closeable, AutoCloseable
 {
     val name = "nodecore${settings.index}"
@@ -40,22 +38,14 @@ class TestNodecore(
 
     val container = KGenericContainer("veriblock/nodecore:$version")
         .withNetworkAliases(name)
-        .withNetwork(network)
-        .withExposedPorts(settings.httpPort, settings.peerPort, settings.rpcPort)
+        .withNetworkMode("host")
         .withFileSystemBind(datadir.absolutePath, "/data", BindMode.READ_WRITE)
-
-    val host: String
-        get() = container.host
-    val rpcPort: Int
-        get() = container.getMappedPort(settings.rpcPort)
-    val peerPort: Int
-        get() = container.getMappedPort(settings.peerPort)
-    val httpPort: Int
-        get() = container.getMappedPort(settings.httpPort)
+        .withEnv("NODECORE_LOG_LEVEL", "DEBUG")
+        .withEnv("NODECORE_CONSOLE_LOG_LEVEL", "DEBUG")
 
     // Accessor for Admin HTTP API
-    lateinit var http: NodeHttpApi
-    lateinit var rpc: AdminGrpc.AdminBlockingStub
+    val http = NodeHttpApi(name, "127.0.0.1", settings.httpPort)
+    val rpc: AdminGrpc.AdminBlockingStub
 
     init {
         datadir.mkdirs()
@@ -65,19 +55,31 @@ class TestNodecore(
         nodecoreProperties.setReadable(true, false)
         nodecoreProperties.setWritable(true, false)
 
+        // setup RPC channel
+        rpc = AdminGrpc
+            .newBlockingStub(
+                ManagedChannelBuilder
+                    .forAddress("127.0.0.1", settings.rpcPort)
+                    .usePlaintext()
+                    .build()
+            )
+            .withMaxInboundMessageSize(20 * 1024 * 1024)
+            .withMaxOutboundMessageSize(20 * 1024 * 1024)
+            .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
+
         // write nodecode.properties
         nodecoreProperties
             .writeText(
                 """
                 network=${settings.network}
                 peer.bootstrap.enabled=false
-                peer.bind.address=0.0.0.0
+                peer.bind.address=127.0.0.1
                 peer.bind.port=${settings.peerPort}
                 peer.share.platform=true
                 peer.share.myAddress=true
-                rpc.bind.address=0.0.0.0
+                rpc.bind.address=127.0.0.1
                 rpc.bind.port=${settings.rpcPort}
-                http.api.bind.address=0.0.0.0
+                http.api.bind.address=127.0.0.1
                 http.api.bind.port=${settings.httpPort}
                 regtest.progpow.height=${settings.progpowHeight}
                 regtest.progpow.start.time=${settings.progpowTime}
@@ -88,20 +90,6 @@ class TestNodecore(
     suspend fun start() {
         container.start()
         container.followOutput(stdlog.forward())
-
-        http = NodeHttpApi(name, host, httpPort)
-        // setup RPC channel
-        rpc = AdminGrpc
-            .newBlockingStub(
-                ManagedChannelBuilder
-                    .forAddress(host, rpcPort)
-                    .usePlaintext()
-                    .build()
-            )
-            .withMaxInboundMessageSize(20 * 1024 * 1024)
-            .withMaxOutboundMessageSize(20 * 1024 * 1024)
-            .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
-
 
         waitForRpcConnection()
     }

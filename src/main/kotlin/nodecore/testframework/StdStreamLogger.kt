@@ -32,6 +32,7 @@ class StdStreamLogger(
             OutputFrame.OutputType.STDOUT -> {
                 if(useConsole) print(it.utf8String)
                 stdoutwriter.print(it.utf8String)
+                stdoutwriter.print('\n')
                 stdoutwriter.flush()
             }
             OutputFrame.OutputType.STDERR -> {

@@ -15,7 +15,7 @@ class TestVBTC(
     version: String
 ): BtcPluginInterface, Closeable, AutoCloseable {
 
-    val name = "vbtc${settings.index}"
+    val name = "btcsq${settings.index}"
     val datadir = File(settings.baseDir, name)
     private val logger = LoggerFactory.getLogger(name)
     val stdlog = StdStreamLogger(datadir)
@@ -32,7 +32,8 @@ class TestVBTC(
         container.host,
         settings.rpcPort,
         settings.username,
-        settings.password
+        settings.password,
+        60000
     )
 
 

@@ -10,14 +10,10 @@ import nodecore.testframework.wrapper.nodecore.Endpoint
 import nodecore.testframework.wrapper.nodecore.SubmitPopRequest
 import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.output.OutputFrame
 import org.testcontainers.utility.DockerImageName
 import org.veriblock.core.wallet.AddressKeyGenerator
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
-import java.io.File
-import java.io.OutputStream
-import java.io.PrintWriter
 import java.net.ServerSocket
 import java.security.KeyPair
 import java.util.concurrent.TimeoutException
@@ -39,10 +35,7 @@ suspend fun connectNodes(a: TestNodecore, b: TestNodecore) {
     a.http.addNode(
         listOf(
             Endpoint(
-                // use b.name instead of b.host, because
-                // B is visible as "b.name" to A in docker network
-                address = b.name,
-                // use internal port (for docker<->docker interaction)
+                address = "127.0.0.1",
                 port = b.settings.peerPort
             )
         )
@@ -111,7 +104,7 @@ suspend fun topUpApmWallet(apm: TestAPM, blocks: Int = 10, timeout: Long = 120_0
     }
 }
 
-fun ByteArray.toHex(): String = this.toHex()
+fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x".format(eachByte) }
 fun ByteArray.toByteString(): ByteString = ByteStringUtility.bytesToByteString(this)
 fun String.toByteString(): ByteString = ByteStringUtility.bytesToByteString(this.toByteArray())
 
