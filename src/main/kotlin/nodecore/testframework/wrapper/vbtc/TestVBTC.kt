@@ -125,4 +125,12 @@ class TestVBTC(
     override fun close() {
         stop()
     }
+
+    suspend fun mineUntilPopEnabled() {
+        check(isAlive()) {
+            "VBTC must be started before getting payout address"
+        }
+        val popActivationHeight = rpc.getPopParams().popActivationHeight
+        rpc.generateToAddress(popActivationHeight, payoutAddress())
+    }
 }
