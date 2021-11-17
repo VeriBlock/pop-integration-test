@@ -67,7 +67,7 @@ abstract class BaseIntegrationTest {
         return nc
     }
 
-    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.5"): TestAPM {
+    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.7.dev.7"): TestAPM {
         val apmSettings = ApmSettings(
             index = apms.size,
             p2pPort = baseApmP2pPort++,
