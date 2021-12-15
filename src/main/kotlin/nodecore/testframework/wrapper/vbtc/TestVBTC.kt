@@ -23,9 +23,9 @@ class TestVBTC(
         .withNetworkAliases(name)
         .withNetworkMode("host")
         .withFileSystemBind(datadir.absolutePath, "/home/vbitcoin/.vbitcoin", BindMode.READ_WRITE)
-        .withCommand("vbitcoind")
+        .withCommand("btcsqd")
 
-    val conf =  File(datadir, "vbitcoin.conf")
+    val conf =  File(datadir, "btcsq.conf")
 
     val rpc = VBTCApi(
         name,
