@@ -19,7 +19,7 @@ class TestVBTC(
     val datadir = File(settings.baseDir, name)
     private val logger = LoggerFactory.getLogger(name)
     val stdlog = StdStreamLogger(datadir)
-    val container = KGenericContainer("veriblock/vbitcoin:$version")
+    val container = KGenericContainer("veriblock/btcsq:$version")
         .withNetworkAliases(name)
         .withNetworkMode("host")
         .withFileSystemBind(datadir.absolutePath, "/home/vbitcoin/.vbitcoin", BindMode.READ_WRITE)
