@@ -50,7 +50,7 @@ abstract class BaseIntegrationTest {
     // override this function to define network services
     abstract suspend fun setup()
 
-    fun addNodecore(version: String = "0.4.13-rc.8"): TestNodecore {
+    fun addNodecore(version: String = "0.4.13-rc.12"): TestNodecore {
         val ncSettings = NodecoreSettings(
             peerPort = baseNodecoreP2pPort++,
             rpcPort = baseNodecoreRpcPort++,
@@ -67,7 +67,7 @@ abstract class BaseIntegrationTest {
         return nc
     }
 
-    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.8"): TestAPM {
+    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.11"): TestAPM {
         val apmSettings = ApmSettings(
             index = apms.size,
             p2pPort = baseApmP2pPort++,
@@ -83,7 +83,7 @@ abstract class BaseIntegrationTest {
         return apm
     }
 
-    fun addVBTC(version: String = "master-6636dc0"): TestVBTC {
+    fun addVBTC(version: String = "master-734a3a0"): TestVBTC {
         val settings = VBtcSettings(
             p2pPort = baseBtcP2pPort++,
             rpcPort = baseBtcRpcPort++,
