@@ -54,13 +54,16 @@ private class PeerSocket(
         start()
     }
 
-    fun write(message: RpcEvent) {
+    fun write(message: RpcEvent, failOnError: Boolean = true) {
         logger.debug("$peerName <--p2p-- ${message.resultsCase.name}")
         try {
-            if (!writeQueue.trySend(message).isSuccess) {
+            if (!writeQueue.offer(message)) {
                 logger.warn(
                     "Not writing event ${message.resultsCase.name} to peer $peerName because write queue is full."
                 )
+                if (failOnError) {
+                    throw RuntimeException("$peerName: Write queue is full")
+                }
             }
         } catch (e: InterruptedException) {
             logger.warn("Output stream thread shutting down for peer $peerName")
