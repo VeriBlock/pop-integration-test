@@ -1,4 +1,4 @@
-package functional
+package functional.nodecore
 
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe

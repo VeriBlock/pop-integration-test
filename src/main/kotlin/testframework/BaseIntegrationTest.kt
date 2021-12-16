@@ -119,22 +119,28 @@ abstract class BaseIntegrationTest {
             status = TestStatus.PASSED
             willCleanup = shouldCleanup
             exitCode = 0
-//        } catch (e: ComparisonFailure) {
-//            logger.error("ASSERTION FAILED")
-//            e.printStackTrace()
-//            status = TestStatus.FAILED
-//            exitCode = 1
+        } catch (e: AssertionError) {
+            logger.error("ASSERTION FAILED")
+            e.printStackTrace()
+            fail(e)
         } catch (e: Exception) {
             logger.error("UNHANDLED EXCEPTION")
-            e.printStackTrace()
-            status = TestStatus.FAILED
-            exitCode = 1
+            fail(e)
         } finally {
-            return shutdown()
+            shutdown()
         }
+
+        return 0
     }
 
-    private fun shutdown(): Int {
+    private fun fail(reason: Exception) {
+        throw RuntimeException("Test failed: \n${reason}")
+    }
+    private fun fail(reason: Error) {
+        throw RuntimeException("Test failed: \n${reason}")
+    }
+
+    private fun shutdown() {
         logger.info("Test ${status.state}!")
         logger.info("Logs are available in ${baseDir.absolutePath}")
         logger.info("Shutting down environment...")
@@ -155,12 +161,6 @@ abstract class BaseIntegrationTest {
         nodecores.clear()
         apms.clear()
         btcsqs.clear()
-
-        if (exitCode != 0) {
-            throw RuntimeException("Test failed with exit code $exitCode")
-        }
-
-        return exitCode
     }
 
     suspend fun syncAllApms(apms: List<TestAPM>, timeout: Long = 60_000 /*ms*/) {

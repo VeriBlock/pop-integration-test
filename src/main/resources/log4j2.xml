@@ -1,7 +1,7 @@
 <configuration>
 
 	<properties>
-		<property name="logLevel" value="${env:TESTINT_LOG_LEVEL:-INFO}" />
+		<property name="logLevel" value="${env:TESTINT_LOG_LEVEL:-DEBUG}" />
 	</properties>
 
 	<appenders>

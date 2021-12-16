@@ -1,9 +1,11 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.adarshr.gradle.testlogger.TestLoggerExtension
+import com.adarshr.gradle.testlogger.TestLoggerPlugin
+import com.adarshr.gradle.testlogger.theme.ThemeType
 
 plugins {
     kotlin("jvm") version "1.5.31"
+    id("com.adarshr.test-logger") version "3.1.0"
 }
 
 group = "org.veriblock"
@@ -17,7 +19,7 @@ repositories {
 val kotestVersion = "5.0.1"
 val coroutinesVersion = "1.5.2-native-mt"
 val log4jVersion= "2.16.0"
-val ktorVersion = "1.6.6"
+val ktorVersion = "1.6.0"
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
@@ -48,8 +50,6 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
     maxParallelForks = 1
-    testLogging.showStandardStreams = true
-    testLogging.exceptionFormat = SHORT
 }
 
 tasks.withType<KotlinCompile> {
@@ -62,4 +62,25 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+plugins.withType<TestLoggerPlugin> {
+    configure<TestLoggerExtension> {
+        theme = ThemeType.MOCHA
+        showExceptions = true
+        showStackTraces = true
+        showFullStackTraces = false
+        showCauses = true
+        slowThreshold = 20000
+        showSummary = true
+        showSimpleNames = false
+        showPassed = true
+        showSkipped = true
+        showFailed = true
+        showStandardStreams = true
+        showPassedStandardStreams = false
+        showSkippedStandardStreams = false
+        showFailedStandardStreams = true
+        logLevel = LogLevel.LIFECYCLE
+    }
 }

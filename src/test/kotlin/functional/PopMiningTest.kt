@@ -85,8 +85,8 @@ class PopMiningTest : BaseIntegrationTest() {
         val ncAddress = Address(nodecores[0].http.getInfo().defaultAddress.address)
 
         logger.info("Generating VTBs...")
-        val TOTAL_VTBS = 10
-        for (i in 1..TOTAL_VTBS) {
+        val totalVtbs = 10
+        for (i in 1..totalVtbs) {
             nodecores[0].http.generateBlocks(1, ncAddress.toString())
             endorseVbkTip(nodecores[0], address = ncAddress)
         }
@@ -116,11 +116,11 @@ class PopMiningTest : BaseIntegrationTest() {
 
         val lastBlockHeight = nodecores[0].http.getInfo().lastBlock.number;
 
-        logger.info("waiting until APM sends all lacking VBK context blocks, $TOTAL_VTBS VTBs and 1 ATV")
+        logger.info("waiting until APM sends all lacking VBK context blocks, $totalVtbs VTBs and 1 ATV")
         waitUntil(timeout = 120_000L, delay = 5000L) {
             val popmp = btcsqs[0].rpc.getRawPopMempool()
             // total number of VBK blocks in mempool must be `lastBlockHeight - 1`
-            popmp.vbkblocks.size != lastBlockHeight - 1 /* genesis */ && popmp.vtbs.size >= TOTAL_VTBS &&  popmp.atvs.isNotEmpty()
+            popmp.vbkblocks.size != lastBlockHeight - 1 /* genesis */ && popmp.vtbs.size >= totalVtbs &&  popmp.atvs.isNotEmpty()
         }
 
         btcsqs[0].rpc.generateToAddress(1, address = vbtcAddr)[0]

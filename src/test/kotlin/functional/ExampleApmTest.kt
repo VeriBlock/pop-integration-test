@@ -21,7 +21,7 @@ internal class ExampleApmTest : BaseIntegrationTest() {
         val vbtc = addBtcsq()
         vbtc.start()
 
-        val apm = addAPM(nodecore, List<BtcPluginInterface>(1){vbtc})
+        val apm = addAPM(nodecore, listOf(vbtc))
         apm.start()
     }
 

@@ -46,6 +46,8 @@ internal class LedgerProofTest : BaseIntegrationTest() {
 
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
+        val info = nodecores[0].http.getInfo()
+        // TODO: check that nodecore0 is connected to mininodes
 
         nodecores[0].http.generateBlocks(100, addr1.toString())
 
