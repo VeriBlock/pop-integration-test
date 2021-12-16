@@ -1,6 +1,7 @@
 package functional
 
 import com.google.protobuf.ByteString
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.*
 import nodecore.api.grpc.RpcEvent
@@ -8,6 +9,7 @@ import nodecore.api.grpc.RpcLedgerProofReply
 import nodecore.api.grpc.RpcLedgerProofReply.*
 import nodecore.api.grpc.RpcLedgerProofRequest
 import nodecore.api.grpc.utilities.ByteStringAddressUtility
+import org.junit.jupiter.api.TestInstance
 import testframework.*
 import testframework.wrapper.nodecore.MiniNode
 import kotlin.test.Test
@@ -24,6 +26,7 @@ private class LedgerProofVerifier : MiniNode() {
     }
 }
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LedgerProofTest : BaseIntegrationTest() {
     // exists, has VBK
     val addr1 = randomAddress()
@@ -44,10 +47,12 @@ internal class LedgerProofTest : BaseIntegrationTest() {
     override suspend fun runTest() {
         logger.info("Running LedgerProof test!")
 
+        nodecores[0].stdlog.useConsole = true
+
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
-        val info = nodecores[0].http.getInfo()
-        // TODO: check that nodecore0 is connected to mininodes
+        val peerinfo = nodecores[0].http.getPeerInfo()
+        peerinfo.connectedNodes shouldHaveSize 1
 
         nodecores[0].http.generateBlocks(100, addr1.toString())
 
@@ -79,7 +84,7 @@ internal class LedgerProofTest : BaseIntegrationTest() {
     fun checkProofOfExistence(e: LedgerProofResult) {
         e.result shouldBe Status.ADDRESS_EXISTS
 
-        // throws is proof is invalid
+        // throws if proof is invalid
         val proof = LedgerProofWithContext.parseFrom(
             e.ledgerProofWithContext
         )
@@ -96,11 +101,6 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         )
 
         proof.ledgerAddress shouldBe addr2.toString()
-    }
-
-    fun checkInvalidAddr(e: LedgerProofResult) {
-        e.address.toString("UTF-8") shouldBe badAddr
-        e.result shouldBe Status.ADDRESS_IS_INVALID
     }
 
     @Test

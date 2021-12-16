@@ -7,6 +7,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import nodecore.api.grpc.RpcEvent
+import org.junit.jupiter.api.TestInstance
 import testframework.BaseIntegrationTest
 import testframework.wrapper.nodecore.MiniNode
 import testframework.connectNodes
@@ -21,6 +22,7 @@ private class ExampleMiniNode : MiniNode() {
     }
 }
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ExampleTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
         addNodecore()

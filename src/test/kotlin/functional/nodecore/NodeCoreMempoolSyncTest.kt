@@ -7,12 +7,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.TestInstance
 import testframework.BaseIntegrationTest
 import testframework.connectNodes
 import testframework.wrapper.nodecore.Output
 import testframework.wrapper.nodecore.SendCoinsRequest
 import kotlin.test.Test
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
         addNodecore()

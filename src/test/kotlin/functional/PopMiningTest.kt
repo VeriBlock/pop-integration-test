@@ -6,6 +6,7 @@ import testframework.*
 import testframework.wrapper.apm.MineRequest
 import testframework.wrapper.nodecore.TestNodecore
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.junit.jupiter.api.TestInstance
 import kotlin.test.Test
 import org.nodecore.vpmmock.mockmining.VeriBlockPopMinerMock
 import org.veriblock.core.Context
@@ -16,6 +17,7 @@ import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.services.SerializeDeserializeService
 import java.security.Security
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PopMiningTest : BaseIntegrationTest() {
     init {
         // for VPM

@@ -150,28 +150,7 @@ private class PeerSocket(
 }
 
 
-data class NodeMetadata(
-    var application: String = "",
-    var platform: String = "",
-    var startTimestamp: Int = 1552064237,
-    var id: String = "Test",
-    var port: Int = 12345,
-    // mainnet, regtest, alphanet == 3
-    // testnet, testnet_progpow == 2
-    var protocolVersion: Int = 3
-) {
-    fun toProto(): RpcNodeInfo {
-        return RpcNodeInfo.newBuilder()
-            .setApplication(application)
-            .setPlatform(platform)
-            .setStartTimestamp(startTimestamp)
-            .setId(id)
-            .setPort(port)
-            .setShare(false)
-            .setProtocolVersion(protocolVersion)
-            .build()
-    }
-}
+
 
 
 open class MiniNode : Closeable, AutoCloseable {
@@ -179,7 +158,7 @@ open class MiniNode : Closeable, AutoCloseable {
     private var socket: PeerSocket? = null
     val stats: HashMap<String, Long> = HashMap()
     val identity = AtomicLong(0)
-    val metadata: NodeMetadata = NodeMetadata()
+    val metadata: NodeInfo = NodeInfo()
 
     fun nextMessageId(): String {
         return identity.incrementAndGet().toString()
@@ -191,11 +170,11 @@ open class MiniNode : Closeable, AutoCloseable {
 
     suspend fun connect(p: TestNodecore, shouldAnnounce: Boolean = true) {
         if (socket != null) {
-            logger.warn("Already connected to ${peerName()}, disconnect first")
+            logger.warn("Already connected to ${p.name}, disconnect first")
             return
         }
         val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
-        logger.debug("Connecting to node${p.settings.index}")
+        logger.debug("Connecting to ${p.name}")
 
         try {
             val socket = PeerSocket(
@@ -219,7 +198,7 @@ open class MiniNode : Closeable, AutoCloseable {
             }
             this.socket = socket
         } catch (e: Exception) {
-            logger.error("Unable to connect to ${peerName()}")
+            logger.error("Unable to connect to ${p.name}")
             throw e
         }
     }

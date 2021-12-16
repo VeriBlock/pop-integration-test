@@ -1,5 +1,6 @@
 package testframework.wrapper.nodecore
 
+import nodecore.api.grpc.RpcGetPeerInfoReply
 import testframework.BaseJsonRpcApi
 import testframework.toRequest
 import org.veriblock.sdk.models.Address
@@ -20,8 +21,8 @@ class NodeHttpApi(
         method = "getinfo"
     )
 
-    suspend fun getStateInfo(): VbkInfo = performRequest(
-        method = "getstateinfo"
+    suspend fun getPeerInfo(): GetPeerInfoReply = performRequest(
+        method = "getpeerinfo"
     )
 
     suspend fun addNode(e: List<Endpoint>): ProtocolReply = performRequest(

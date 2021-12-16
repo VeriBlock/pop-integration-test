@@ -5,6 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.TestInstance
 import testframework.BaseIntegrationTest
 import testframework.connectNodes
 import testframework.topUpApmWallet
@@ -12,6 +13,7 @@ import testframework.waitUntil
 import testframework.wrapper.apm.MineRequest
 import kotlin.test.Test
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TxLimitTest : BaseIntegrationTest() {
 
     class NoErrorException(message: String): Exception(message)

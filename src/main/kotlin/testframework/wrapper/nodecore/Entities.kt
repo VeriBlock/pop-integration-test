@@ -1,6 +1,7 @@
 package testframework.wrapper.nodecore
 
 import kotlinx.serialization.Serializable
+import nodecore.api.grpc.RpcNodeInfo
 
 @Serializable
 data class Result(
@@ -21,7 +22,53 @@ data class ProtocolReply(
 )
 
 @Serializable
-data class VbkInfoAddress (
+data class NodeInfo(
+    val address: String = "",
+    val application: String = "MiniNode",
+    val platform: String = "e2eTest",
+    val startTimestamp: Int = 1552064237,
+    val id: String = "Test",
+    val port: Int = 12345,
+    // mainnet, regtest, alphanet == 3
+    // testnet, testnet_progpow == 2
+    val protocolVersion: Int = 3,
+    val share: Boolean = false,
+    val capabilities: Long = 0
+) {
+    fun toProto(): RpcNodeInfo {
+        return RpcNodeInfo.newBuilder()
+            .setApplication(application)
+            .setPlatform(platform)
+            .setAddress(address)
+            .setStartTimestamp(startTimestamp)
+            .setId(id)
+            .setPort(port)
+            .setShare(share)
+            .setProtocolVersion(protocolVersion)
+            .setCapabilities(capabilities)
+            .build()
+    }
+}
+
+@Serializable
+data class NodeHeight(
+    val peer: String,
+    val height: Int
+)
+
+@Serializable
+data class GetPeerInfoReply(
+    val success: Boolean,
+    val results: List<Result>,
+    val endpoints: List<Endpoint>,
+    val connectedNodes: List<NodeInfo>,
+    val disconnectedNodes: List<NodeInfo>,
+    val candidateNodes: List<NodeInfo>,
+    val nodeHeights: List<NodeHeight>
+)
+
+@Serializable
+data class VbkInfoAddress(
     val address: String
 )
 
