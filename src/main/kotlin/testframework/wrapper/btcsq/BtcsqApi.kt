@@ -1,8 +1,8 @@
-package nodecore.testframework.wrapper.vbtc
+package testframework.wrapper.btcsq
 
-import nodecore.testframework.BaseJsonRpcApi
+import testframework.BaseJsonRpcApi
 
-class VBTCApi(
+class BtcsqApi(
     name: String,
     host: String,
     port: Int,

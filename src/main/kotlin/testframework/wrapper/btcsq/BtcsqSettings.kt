@@ -1,8 +1,8 @@
-package nodecore.testframework.wrapper.vbtc
+package testframework.wrapper.btcsq
 
 import java.io.File
 
-class VBtcSettings(
+class BtcsqSettings(
     val p2pPort: Int,
     val rpcPort: Int,
     val zmqPort: Int,

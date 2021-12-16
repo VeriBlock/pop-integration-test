@@ -1,13 +1,7 @@
-package nodecore.testframework.wrapper.nodecore
+package testframework.wrapper.nodecore
 
-import nodecore.api.GetPendingTransactionsReply
-import nodecore.api.SendCoinsReply
-import nodecore.api.SendCoinsRequest
-import nodecore.api.grpc.RpcGetPendingTransactionsReply
-import nodecore.api.grpc.RpcSendCoinsReply
-import nodecore.api.grpc.RpcSendCoinsRequest
-import nodecore.testframework.BaseJsonRpcApi
-import nodecore.testframework.toRequest
+import testframework.BaseJsonRpcApi
+import testframework.toRequest
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
 

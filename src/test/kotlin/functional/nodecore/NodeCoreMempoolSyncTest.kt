@@ -7,11 +7,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import nodecore.testframework.BaseIntegrationTest
-import nodecore.testframework.connectNodes
+import testframework.BaseIntegrationTest
+import testframework.connectNodes
+import testframework.wrapper.nodecore.Output
+import testframework.wrapper.nodecore.SendCoinsRequest
 import kotlin.test.Test
-import nodecore.api.Output
-import nodecore.api.SendCoinsRequest
 
 class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {

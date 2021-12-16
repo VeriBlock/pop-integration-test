@@ -8,8 +8,8 @@ import nodecore.api.grpc.RpcLedgerProofReply
 import nodecore.api.grpc.RpcLedgerProofReply.*
 import nodecore.api.grpc.RpcLedgerProofRequest
 import nodecore.api.grpc.utilities.ByteStringAddressUtility
-import nodecore.testframework.*
-import nodecore.testframework.wrapper.nodecore.MiniNode
+import testframework.*
+import testframework.wrapper.nodecore.MiniNode
 import kotlin.test.Test
 import org.veriblock.extensions.ledger.LedgerProofWithContext
 import org.veriblock.sdk.models.Address

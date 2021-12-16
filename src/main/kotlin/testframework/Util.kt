@@ -1,19 +1,19 @@
-package nodecore.testframework
+package testframework
 
 import com.google.protobuf.ByteString
 import kotlinx.coroutines.delay
 import nodecore.api.grpc.RpcEvent
 import nodecore.api.grpc.utilities.ByteStringUtility
-import nodecore.testframework.wrapper.apm.TestAPM
-import nodecore.testframework.wrapper.nodecore.BitcoinBlockHeader
-import nodecore.testframework.wrapper.nodecore.Endpoint
-import nodecore.testframework.wrapper.nodecore.SubmitPopRequest
-import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 import org.veriblock.core.wallet.AddressKeyGenerator
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
+import testframework.wrapper.apm.TestAPM
+import testframework.wrapper.nodecore.BitcoinBlockHeader
+import testframework.wrapper.nodecore.Endpoint
+import testframework.wrapper.nodecore.SubmitPopRequest
+import testframework.wrapper.nodecore.TestNodecore
 import java.net.ServerSocket
 import java.security.KeyPair
 import java.util.concurrent.TimeoutException

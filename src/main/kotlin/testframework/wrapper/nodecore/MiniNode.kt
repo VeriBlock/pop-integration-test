@@ -1,4 +1,4 @@
-package nodecore.testframework.wrapper.nodecore
+package testframework.wrapper.nodecore
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import io.ktor.network.selector.*
@@ -10,7 +10,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import nodecore.api.grpc.RpcAnnounce
 import nodecore.api.grpc.RpcEvent
 import nodecore.api.grpc.RpcNodeInfo
-import nodecore.testframework.buildMessage
+import testframework.buildMessage
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.io.EOFException
@@ -57,7 +57,7 @@ private class PeerSocket(
     fun write(message: RpcEvent) {
         logger.debug("$peerName <--p2p-- ${message.resultsCase.name}")
         try {
-            if (!writeQueue.offer(message)) {
+            if (!writeQueue.trySend(message).isSuccess) {
                 logger.warn(
                     "Not writing event ${message.resultsCase.name} to peer $peerName because write queue is full."
                 )

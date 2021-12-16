@@ -2,9 +2,9 @@ package functional
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.*
-import nodecore.testframework.*
-import nodecore.testframework.wrapper.apm.MineRequest
-import nodecore.testframework.wrapper.nodecore.TestNodecore
+import testframework.*
+import testframework.wrapper.apm.MineRequest
+import testframework.wrapper.nodecore.TestNodecore
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import kotlin.test.Test
 import org.nodecore.vpmmock.mockmining.VeriBlockPopMinerMock
@@ -63,7 +63,7 @@ class PopMiningTest : BaseIntegrationTest() {
             connectNodes(nodecores[i + 1], nodecores[i])
         }
 
-        val vbtc = addVBTC()
+        val vbtc = addBtcsq()
         vbtc.start()
         vbtc.mineUntilPopEnabled()
 
@@ -75,8 +75,8 @@ class PopMiningTest : BaseIntegrationTest() {
         logger.info("Running PopMiningTest test!")
 
         logger.info("Generating 10 vBTC blocks")
-        val vbtcAddr = vbtcs[0].rpc.getNewAddress()
-        vbtcs[0].rpc.generateToAddress(10, vbtcAddr)
+        val vbtcAddr = btcsqs[0].rpc.getNewAddress()
+        btcsqs[0].rpc.generateToAddress(10, vbtcAddr)
 
         logger.info("Sending VBK to APM address ${apms[0].vbkAddress}")
         topUpApmWallet(apms[0], blocks = 10)
@@ -92,7 +92,7 @@ class PopMiningTest : BaseIntegrationTest() {
         }
 
         syncAllApms(apms)
-        val operation = apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 210)) // TODO: height = popActvationHeight + mined vbtc blocks
+        val operation = apms[0].http.mine(MineRequest(chainSymbol = btcsqs[0].name, 210)) // TODO: height = popActvationHeight + mined vbtc blocks
 
         logger.info("waiting until APM submits endorsement TX")
         waitUntil(delay = 5000L) {
@@ -118,15 +118,15 @@ class PopMiningTest : BaseIntegrationTest() {
 
         logger.info("waiting until APM sends all lacking VBK context blocks, $TOTAL_VTBS VTBs and 1 ATV")
         waitUntil(timeout = 120_000L, delay = 5000L) {
-            val popmp = vbtcs[0].rpc.getRawPopMempool()
+            val popmp = btcsqs[0].rpc.getRawPopMempool()
             // total number of VBK blocks in mempool must be `lastBlockHeight - 1`
             popmp.vbkblocks.size != lastBlockHeight - 1 /* genesis */ && popmp.vtbs.size >= TOTAL_VTBS &&  popmp.atvs.isNotEmpty()
         }
 
-        vbtcs[0].rpc.generateToAddress(1, address = vbtcAddr)[0]
+        btcsqs[0].rpc.generateToAddress(1, address = vbtcAddr)[0]
 
         // all pop-payloads mined, mempool is empty
-        val popmp = vbtcs[0].rpc.getRawPopMempool()
+        val popmp = btcsqs[0].rpc.getRawPopMempool()
         popmp.atvs.size shouldBe 0
         popmp.vtbs.size shouldBe 0
         popmp.vbkblocks.size shouldBe 0

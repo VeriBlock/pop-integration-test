@@ -1,4 +1,4 @@
-package nodecore.testframework
+package testframework
 
 interface BtcPluginInterface {
     fun name(): String

@@ -1,4 +1,4 @@
-package nodecore.testframework
+package testframework
 
 import java.io.File
 import java.io.IOException

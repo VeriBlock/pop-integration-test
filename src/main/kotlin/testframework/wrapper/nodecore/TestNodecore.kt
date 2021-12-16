@@ -1,14 +1,14 @@
-package nodecore.testframework.wrapper.nodecore
+package testframework.wrapper.nodecore
 
 import io.grpc.Deadline
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import nodecore.api.grpc.AdminGrpc
-import nodecore.testframework.StdStreamLogger
-import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import testframework.KGenericContainer
+import testframework.StdStreamLogger
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -46,6 +46,10 @@ class TestNodecore(
     // Accessor for Admin HTTP API
     val http = NodeHttpApi(name, "127.0.0.1", settings.httpPort)
     val rpc: AdminGrpc.AdminBlockingStub
+    private val channel = ManagedChannelBuilder
+        .forAddress("127.0.0.1", settings.rpcPort)
+        .usePlaintext()
+        .build()
 
     init {
         datadir.mkdirs()
@@ -57,12 +61,7 @@ class TestNodecore(
 
         // setup RPC channel
         rpc = AdminGrpc
-            .newBlockingStub(
-                ManagedChannelBuilder
-                    .forAddress("127.0.0.1", settings.rpcPort)
-                    .usePlaintext()
-                    .build()
-            )
+            .newBlockingStub(channel)
             .withMaxInboundMessageSize(20 * 1024 * 1024)
             .withMaxOutboundMessageSize(20 * 1024 * 1024)
             .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
@@ -100,6 +99,10 @@ class TestNodecore(
     }
 
     fun stop() {
+        // don't forget to shutdown channel
+        if(!channel.isShutdown) {
+            channel.shutdownNow()
+        }
         container.stop()
     }
 

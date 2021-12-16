@@ -1,4 +1,4 @@
-package nodecore.testframework.wrapper.apm
+package testframework.wrapper.apm
 
 import kotlinx.serialization.Serializable
 

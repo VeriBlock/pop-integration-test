@@ -2,8 +2,8 @@ package functional
 
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import nodecore.testframework.BaseIntegrationTest
-import nodecore.testframework.BtcPluginInterface
+import testframework.BaseIntegrationTest
+import testframework.BtcPluginInterface
 import kotlin.test.Test
 
 internal class ExampleApmTest : BaseIntegrationTest() {
@@ -18,7 +18,7 @@ internal class ExampleApmTest : BaseIntegrationTest() {
         val nodecore = addNodecore()
         nodecore.start()
 
-        val vbtc = addVBTC()
+        val vbtc = addBtcsq()
         vbtc.start()
 
         val apm = addAPM(nodecore, List<BtcPluginInterface>(1){vbtc})

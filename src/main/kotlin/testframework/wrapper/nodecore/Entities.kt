@@ -1,4 +1,4 @@
-package nodecore.api
+package testframework.wrapper.nodecore
 
 import kotlinx.serialization.Serializable
 
@@ -21,8 +21,14 @@ data class ProtocolReply(
 )
 
 @Serializable
+data class VbkInfoAddress (
+    val address: String
+)
+
+@Serializable
 data class VbkInfo(
-    val lastBlock: VbkBlockData
+    val lastBlock: VbkBlockData,
+    val defaultAddress: VbkInfoAddress
 )
 
 @Serializable
@@ -43,14 +49,63 @@ data class GenerateBlocksReply(
 )
 
 @Serializable
-data class BlockHeaderContainer(
+data class BlockHeader(
+    val header: String,
+    val hash: String
+)
+
+@Serializable
+data class GetLastBlockReply(
     val header: BlockHeader
 )
 
 @Serializable
-data class BlockHeader(
-    val hash: String,
+data class GetLastBitcoinBlockReply(
+    val header: String,
+    val height: Int,
+    val hash: String
+)
+
+@Serializable
+data class BitcoinBlockHeader(
     val header: String
+)
+
+@Serializable
+data class SubmitPopRequest(
+    val endorsedBlockHeader: String,
+    val bitcoinTransaction: String,
+    val bitcoinMerklePathToRoot: String,
+    val bitcoinBlockHeaderOfProof: BitcoinBlockHeader,
+    val contextBitcoinBlockHeaders: List<BitcoinBlockHeader>,
+    val address: String
+)
+
+@Serializable
+data class SendCoinsRequest(
+    val amounts: List<Output>,
+    val sourceAddress: String? = null,
+    val takeFeeFromOutputs: Boolean = false
+)
+
+@Serializable
+data class SendCoinsReply(
+    val success: Boolean,
+    val results: List<Result>,
+    val txIds: List<String>
+)
+
+@Serializable
+data class GetPendingTransactionsReply(
+    val success: Boolean,
+    val results: List<Result>,
+    val transactions: List<Transaction>
+)
+
+
+@Serializable
+data class BlockHeaderContainer(
+    val header: BlockHeader
 )
 
 @Serializable
@@ -193,11 +248,6 @@ data class Output(
 )
 
 @Serializable
-data class BitcoinBlockHeader(
-    val header: String
-)
-
-@Serializable
 data class SignedTransaction(
     val signature: String,
     val publicKey: String,
@@ -271,23 +321,3 @@ data class TransactionInfo(
     val bitcoinConfirmations: Int
 )
 
-@Serializable
-data class SendCoinsRequest(
-    val amounts: List<Output>,
-    val sourceAddress: String? = null,
-    val takeFeeFromOutputs: Boolean = false
-)
-
-@Serializable
-data class SendCoinsReply(
-    val success: Boolean,
-    val results: List<Result>,
-    val txIds: List<String>
-)
-
-@Serializable
-data class GetPendingTransactionsReply(
-    val success: Boolean,
-    val results: List<Result>,
-    val transactions: List<Transaction>
-)

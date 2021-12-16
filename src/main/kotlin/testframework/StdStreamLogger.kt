@@ -1,4 +1,4 @@
-package nodecore.testframework
+package testframework
 
 import org.testcontainers.containers.output.OutputFrame
 import java.io.File
