@@ -39,7 +39,6 @@ data class NodeInfo(
         return RpcNodeInfo.newBuilder()
             .setApplication(application)
             .setPlatform(platform)
-            .setAddress(address)
             .setStartTimestamp(startTimestamp)
             .setId(id)
             .setPort(port)

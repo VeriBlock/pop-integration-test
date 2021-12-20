@@ -12,6 +12,7 @@ import nodecore.api.grpc.RpcEvent
 import nodecore.api.grpc.RpcNodeInfo
 import testframework.buildMessage
 import org.slf4j.LoggerFactory
+import testframework.waitUntil
 import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
@@ -150,15 +151,14 @@ private class PeerSocket(
 }
 
 
-
-
-
 open class MiniNode : Closeable, AutoCloseable {
     // connected to this node
     private var socket: PeerSocket? = null
     val stats: HashMap<String, Long> = HashMap()
     val identity = AtomicLong(0)
     val metadata: NodeInfo = NodeInfo()
+
+    private var nodeAnnouncedBack = AtomicBoolean(false)
 
     fun nextMessageId(): String {
         return identity.incrementAndGet().toString()
@@ -168,38 +168,49 @@ open class MiniNode : Closeable, AutoCloseable {
         return socket?.peerName
     }
 
-    suspend fun connect(p: TestNodecore, shouldAnnounce: Boolean = true) {
+    suspend fun connect(p: TestNodecore) {
         if (socket != null) {
             logger.warn("Already connected to ${p.name}, disconnect first")
             return
         }
-        val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
-        logger.debug("Connecting to ${p.name}")
 
+        waitUntil(attempts = 5, delay = 2_000L) {
+            connectOnce(p)
+        }
+    }
+
+    private suspend fun connectOnce(p: TestNodecore): Boolean {
         try {
-            val socket = PeerSocket(
+            val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
+            logger.debug("Connecting to ${p.name}")
+
+            val socket = aSocket(selectorManager)
+                .tcp()
+                .connect(address)
+
+            val peer = PeerSocket(
                 p,
-                aSocket(selectorManager)
-                    .tcp()
-                    .connect(address)
+                socket
             ) {
                 handleMessage(it)
             }
 
-            if (shouldAnnounce) {
-                val announceMsg = buildMessage(nextMessageId()) {
-                    announce = RpcAnnounce.newBuilder()
-                        .setReply(false)
-                        .setNodeInfo(metadata.toProto())
-                        .build()
-                }
-
-                socket.write(announceMsg)
+            val announceMsg = buildMessage(nextMessageId()) {
+                announce = RpcAnnounce.newBuilder()
+                    .setReply(false)
+                    .setNodeInfo(metadata.toProto())
+                    .build()
             }
-            this.socket = socket
+
+            peer.write(announceMsg)
+
+            // wait for ANNOUNCE from a node
+            waitUntil(timeout = 10_000L) { nodeAnnouncedBack.get() }
+            this.socket = peer
+            return true
         } catch (e: Exception) {
-            logger.error("Unable to connect to ${p.name}")
-            throw e
+            logger.error("Unable to connect to ${p.name}: $e")
+            return false
         }
     }
 
@@ -231,6 +242,12 @@ open class MiniNode : Closeable, AutoCloseable {
             // store stats about received msgs
             val count = stats.getOrDefault(event.resultsCase.name, 0L)
             stats[event.resultsCase.name] = count + 1
+
+            // if this is announce back, then release "connect"
+            if (event.hasAnnounce()) {
+                this.nodeAnnouncedBack.set(true)
+            }
+
             // let user handle msg
             onEvent(event)
         } catch (e: Exception) {

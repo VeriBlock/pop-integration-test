@@ -70,6 +70,7 @@ class TestNodecore(
         nodecoreProperties
             .writeText(
                 """
+                bfi.enabled=false
                 network=${settings.network}
                 peer.bootstrap.enabled=false
                 peer.bind.address=127.0.0.1
@@ -88,7 +89,7 @@ class TestNodecore(
 
     suspend fun start() {
         container.start()
-        container.followOutput(stdlog.forward())
+        container.followOutput(stdlog.forward(logger))
 
         waitForRpcConnection()
     }

@@ -82,7 +82,7 @@ class TestBtcsq(
 
     suspend fun start() {
         container.start()
-        container.followOutput(stdlog.forward())
+        container.followOutput(stdlog.forward(logger))
         waitForRpcAvailability()
     }
 

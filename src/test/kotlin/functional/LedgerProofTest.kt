@@ -27,15 +27,15 @@ private class LedgerProofVerifier : MiniNode() {
 }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class LedgerProofTest : BaseIntegrationTest() {
+class LedgerProofTest : BaseIntegrationTest() {
     // exists, has VBK
-    val addr1 = randomAddress()
+    private val addr1 = randomAddress()
 
     // does not exist, has no VBK
-    val addr2 = randomAddress()
-    val badAddr = "Not An Address"
+    private val addr2 = randomAddress()
+    private val badAddr = "Not An Address"
 
-    fun addr2bytes(addr: Address): ByteString {
+    private fun addr2bytes(addr: Address): ByteString {
         return ByteStringAddressUtility.createProperByteStringAutomatically(addr.toString())
     }
 
@@ -47,8 +47,7 @@ internal class LedgerProofTest : BaseIntegrationTest() {
     override suspend fun runTest() {
         logger.info("Running LedgerProof test!")
 
-        nodecores[0].stdlog.useConsole = true
-
+        delay(5_000L)
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
         val peerinfo = nodecores[0].http.getPeerInfo()
@@ -81,7 +80,7 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         checkProofOfNonExistence(list[1])
     }
 
-    fun checkProofOfExistence(e: LedgerProofResult) {
+    private fun checkProofOfExistence(e: LedgerProofResult) {
         e.result shouldBe Status.ADDRESS_EXISTS
 
         // throws if proof is invalid
@@ -92,7 +91,7 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         proof.ledgerAddress shouldBe addr1.toString()
     }
 
-    fun checkProofOfNonExistence(e: LedgerProofResult) {
+    private fun checkProofOfNonExistence(e: LedgerProofResult) {
         e.result shouldBe Status.ADDRESS_DOES_NOT_EXIST
 
         // throws if proof is invalid

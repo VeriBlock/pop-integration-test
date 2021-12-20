@@ -28,7 +28,7 @@ abstract class BaseIntegrationTest {
     val apms = ArrayList<TestAPM>() /* empty by default */
     val nodecores = ArrayList<TestNodecore>() /* empty by default */
     val btcsqs = ArrayList<TestBtcsq>() /* empty by default */
-    val logger = LoggerFactory.getLogger("BaseIntegrationTest")
+    val logger = LoggerFactory.getLogger("Test")
     var baseNodecoreRpcPort = (23300)
     var baseNodecoreP2pPort = (23200)
     var baseNodecoreHttpPort = (23100)
@@ -169,13 +169,10 @@ abstract class BaseIntegrationTest {
         try {
             waitUntil(timeout = timeout) {
                 statuses = apms.map { it.http.getMinerInfo().status.isReady }
-
-                // if all getInfo returned same block,
-                // then we consider syncAll succeeded
                 return@waitUntil statuses.all { it }
             }
         } catch (e: TimeoutCancellationException) {
-            logger.error("syncNodecoreBlocks failed: ${statuses.joinToString { "\n" }}")
+            logger.error("syncAllApms failed: ${statuses.joinToString { "\n" }}")
             throw e
         }
     }

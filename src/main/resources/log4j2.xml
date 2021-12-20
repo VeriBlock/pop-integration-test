@@ -7,7 +7,7 @@
 	<appenders>
 
 		<console name="consoleAppender">
-			<patternLayout disableAnsi="false" pattern="%d{yyyy-MM-dd HH:mm:ss} %style{%-10.-10thread}{bright,white} %highlight{%-5level}{INFO=blue} %style{%-25.-25logger{0}}{bright,black} - %msg%n"/>
+			<patternLayout disableAnsi="false" pattern="%d{yyyy-MM-dd HH:mm:ss} %highlight{%-5level}{INFO=blue} %style{%-15.-15logger{0}}{bright,black} - %msg%n"/>
 		</console>
 
 	</appenders>

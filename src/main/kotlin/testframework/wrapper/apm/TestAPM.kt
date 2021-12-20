@@ -95,7 +95,7 @@ class TestAPM(
 
     suspend fun start() {
         container.start()
-        container.followOutput(stdlog.forward())
+        container.followOutput(stdlog.forward(logger))
         waitForHttpApiAvailability()
     }
 

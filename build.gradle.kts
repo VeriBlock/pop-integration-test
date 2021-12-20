@@ -4,6 +4,7 @@ import com.adarshr.gradle.testlogger.TestLoggerPlugin
 import com.adarshr.gradle.testlogger.theme.ThemeType
 
 plugins {
+    idea
     kotlin("jvm") version "1.5.31"
     id("com.adarshr.test-logger") version "3.1.0"
 }
@@ -18,7 +19,7 @@ repositories {
 
 val kotestVersion = "5.0.1"
 val coroutinesVersion = "1.5.2-native-mt"
-val log4jVersion= "2.16.0"
+val log4jVersion = "2.16.0"
 val ktorVersion = "1.6.0"
 
 dependencies {
@@ -62,6 +63,15 @@ tasks.withType<JavaCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+
+    reports {
+        html.required.set(true)
+        junitXml.required.set(true)
+        junitXml.apply {
+            isOutputPerTestCase = true // defaults to false
+            mergeReruns.set(true) // defaults to false
+        }
+    }
 }
 
 plugins.withType<TestLoggerPlugin> {
@@ -82,5 +92,15 @@ plugins.withType<TestLoggerPlugin> {
         showSkippedStandardStreams = false
         showFailedStandardStreams = true
         logLevel = LogLevel.LIFECYCLE
+    }
+}
+
+reporting.baseDir = file("$buildDir/reports")
+project.setProperty("testResultsDirName", "$buildDir/test-results")
+
+tasks.register("showDirs") {
+    doLast {
+        logger.quiet(rootDir.toPath().relativize((project.properties["reportsDir"] as File).toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize((project.properties["testResultsDir"] as File).toPath()).toString())
     }
 }

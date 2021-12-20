@@ -69,6 +69,8 @@ class PopMiningTest : BaseIntegrationTest() {
         vbtc.start()
         vbtc.mineUntilPopEnabled()
 
+        logger.info("BTCSQ is at height when POP is enabled")
+
         val apm = addAPM(nodecores[0], listOf(vbtc))
         apm.start()
     }
