@@ -16,6 +16,7 @@ jobs:
       INT_NODECORE_VERSION: "0.4.13-rc.11"
       INT_APM_VERSION: "0.4.13-rc.11"
       INT_BTCSQ_VERSION: "master-47363b0"
+      INT_LOG_LEVEL: "DEBUG"
 
     steps:
       - uses: actions/checkout@v2

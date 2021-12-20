@@ -21,20 +21,25 @@ class TestBtcsq(
     val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/btcsq:$version")
         .withNetworkAliases(name)
-        .withNetworkMode("host")
         .withFileSystemBind(datadir.absolutePath, "/home/btcsq/.btcsq", BindMode.READ_WRITE)
         .withCommand("btcsqd")
 
+    fun getAddress(): String {
+        // we can take IP only on running containers
+        assert(container.isRunning)
+        return container
+            .containerInfo
+            .networkSettings
+            .networks
+            .entries
+            .first()
+            .value
+            .ipAddress!!
+    }
+
     val conf =  File(datadir, "btcsq.conf")
 
-    val rpc = BtcsqApi(
-        name,
-        container.host,
-        settings.rpcPort,
-        settings.username,
-        settings.password,
-        60000
-    )
+    lateinit var rpc: BtcsqApi
 
 
     init {
@@ -83,6 +88,17 @@ class TestBtcsq(
     suspend fun start() {
         container.start()
         container.followOutput(stdlog.forward(logger))
+        logger.info("IP: ${getAddress()}")
+
+        rpc = BtcsqApi(
+            name,
+            getAddress(),
+            settings.rpcPort,
+            settings.username,
+            settings.password,
+            60000
+        )
+
         waitForRpcAvailability()
     }
 
@@ -122,6 +138,7 @@ class TestBtcsq(
     override fun username(): String = settings.username
     override fun password(): String = settings.password
     override fun id(): Long = 0x3ae6ca26ff
+    override fun host(): String = getAddress()
     override fun port(): Int = settings.rpcPort
     override fun network(): String = settings.bitcoinNetwork
     override fun payoutDelay(): Int = 150

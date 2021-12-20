@@ -16,8 +16,9 @@ import testframework.wrapper.nodecore.SubmitPopRequest
 import testframework.wrapper.nodecore.TestNodecore
 import java.net.ServerSocket
 import java.security.KeyPair
+import java.security.SecureRandom
 import java.util.concurrent.TimeoutException
-
+import kotlin.random.Random
 
 fun isPortAvailable(port: Int): Boolean {
     try {
@@ -31,11 +32,18 @@ fun isPortAvailable(port: Int): Boolean {
     return false
 }
 
+fun getNextAvailablePort(basePort: Int): Int {
+    var port = basePort
+    while (!isPortAvailable(port++)) {
+    }
+    return port
+}
+
 suspend fun connectNodes(a: TestNodecore, b: TestNodecore) {
     a.http.addNode(
         listOf(
             Endpoint(
-                address = "127.0.0.1",
+                address = b.getAddress(),
                 port = b.settings.peerPort
             )
         )
@@ -62,7 +70,12 @@ fun buildMessage(
     .build()
 
 // sleep until the predicate resolves to be True
-suspend fun waitUntil(attempts: Long = Long.MAX_VALUE, timeout: Long = 60_000L, delay: Long = 1_000L, predicate: suspend () -> Boolean) {
+suspend fun waitUntil(
+    attempts: Long = Long.MAX_VALUE,
+    timeout: Long = 60_000L,
+    delay: Long = 1_000L,
+    predicate: suspend () -> Boolean
+) {
     var attempt = 0
     val timeEnd = System.currentTimeMillis() + timeout
     while (attempt++ < attempts && System.currentTimeMillis() < timeEnd) {

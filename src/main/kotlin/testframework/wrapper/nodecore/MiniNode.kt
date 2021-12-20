@@ -181,17 +181,14 @@ open class MiniNode : Closeable, AutoCloseable {
 
     private suspend fun connectOnce(p: TestNodecore): Boolean {
         try {
-            val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
+            val address = NetworkAddress(p.getAddress(), p.settings.peerPort)
             logger.debug("Connecting to ${p.name}")
 
             val socket = aSocket(selectorManager)
                 .tcp()
                 .connect(address)
 
-            val peer = PeerSocket(
-                p,
-                socket
-            ) {
+            val peer = PeerSocket(p, socket) {
                 handleMessage(it)
             }
 
@@ -205,7 +202,7 @@ open class MiniNode : Closeable, AutoCloseable {
             peer.write(announceMsg)
 
             // wait for ANNOUNCE from a node
-            waitUntil(timeout = 10_000L) { nodeAnnouncedBack.get() }
+            waitUntil(timeout = 5_000L) { nodeAnnouncedBack.get() }
             this.socket = peer
             return true
         } catch (e: Exception) {

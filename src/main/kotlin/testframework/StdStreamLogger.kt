@@ -1,9 +1,9 @@
 package testframework
 
+import org.slf4j.Logger
 import org.testcontainers.containers.output.OutputFrame
 import java.io.File
 import java.io.PrintWriter
-import java.util.logging.Logger
 
 class StdStreamLogger(
     datadir: File
@@ -27,16 +27,28 @@ class StdStreamLogger(
         stderrwriter = stderr.printWriter()
     }
 
-    fun forward(logger: org.slf4j.Logger): (OutputFrame) -> Unit = {
+    fun forward(logger: Logger, addEndl: Boolean = false): (OutputFrame) -> Unit = {
         when (it.type) {
             OutputFrame.OutputType.STDOUT -> {
-                logger.debug(it.utf8String.dropLast(1))
-                stdoutwriter.println(it.utf8String)
+                if (addEndl) {
+                    logger.debug(it.utf8String)
+                    stdoutwriter.println(it.utf8String)
+                } else {
+                    logger.debug(it.utf8String.dropLast(1))
+                    stdoutwriter.print(it.utf8String)
+                }
+
                 stdoutwriter.flush()
             }
             OutputFrame.OutputType.STDERR -> {
-                logger.error(it.utf8String.dropLast(1))
-                stderrwriter.println(it.utf8String)
+                if (addEndl) {
+                    logger.error(it.utf8String)
+                    stdoutwriter.println(it.utf8String)
+                } else {
+                    logger.error(it.utf8String.dropLast(1))
+                    stdoutwriter.print(it.utf8String)
+                }
+
                 stderrwriter.flush()
             }
             else -> Unit

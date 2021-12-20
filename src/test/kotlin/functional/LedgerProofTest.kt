@@ -47,7 +47,6 @@ class LedgerProofTest : BaseIntegrationTest() {
     override suspend fun runTest() {
         logger.info("Running LedgerProof test!")
 
-        delay(5_000L)
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
         val peerinfo = nodecores[0].http.getPeerInfo()
