@@ -189,7 +189,7 @@ open class MiniNode : Closeable, AutoCloseable {
                 .connect(address)
 
             val peer = PeerSocket(p, socket) {
-                handleMessage(it)
+                handleMessage(it, p.name)
             }
 
             val announceMsg = buildMessage(nextMessageId()) {
@@ -232,10 +232,10 @@ open class MiniNode : Closeable, AutoCloseable {
         socket.write(e)
     }
 
-    private suspend fun handleMessage(buf: ByteArray) {
+    private suspend fun handleMessage(buf: ByteArray, name: String) {
         try {
             val event = RpcEvent.parseFrom(buf)
-            logger.debug("${peerName()} --p2p--> ${event.resultsCase.name}")
+            logger.debug("$name --p2p--> ${event.resultsCase.name}")
             // store stats about received msgs
             val count = stats.getOrDefault(event.resultsCase.name, 0L)
             stats[event.resultsCase.name] = count + 1
@@ -248,7 +248,7 @@ open class MiniNode : Closeable, AutoCloseable {
             // let user handle msg
             onEvent(event)
         } catch (e: Exception) {
-            logger.error("${peerName()} misbehaved! Can't parse Event of size ${buf.size}.")
+            logger.error("$name misbehaved! Can't parse Event of size ${buf.size}.")
             close()
             return
         }
