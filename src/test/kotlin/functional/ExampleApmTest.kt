@@ -7,7 +7,6 @@ import testframework.BaseIntegrationTest
 import testframework.BtcPluginInterface
 import kotlin.test.Test
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ExampleApmTest : BaseIntegrationTest() {
     override suspend fun runTest() {
         logger.info("Running ExampleApmTest test!")

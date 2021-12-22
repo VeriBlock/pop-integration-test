@@ -22,8 +22,7 @@ private class ExampleMiniNode : MiniNode() {
     }
 }
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class ExampleTest : BaseIntegrationTest() {
+class ExampleTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
         addNodecore()
         addNodecore()

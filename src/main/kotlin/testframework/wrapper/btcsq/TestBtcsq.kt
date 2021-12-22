@@ -7,6 +7,7 @@ import testframework.KGenericContainer
 import testframework.waitUntil
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.wait.strategy.Wait
 import java.io.Closeable
 import java.io.File
 
@@ -23,6 +24,7 @@ class TestBtcsq(
         .withNetworkAliases(name)
         .withFileSystemBind(datadir.absolutePath, "/home/btcsq/.btcsq", BindMode.READ_WRITE)
         .withCommand("btcsqd")
+        .waitingFor(Wait.forLogMessage(".*tree best height =.*", 3))
 
     fun getAddress(): String {
         // we can take IP only on running containers

@@ -174,8 +174,14 @@ open class MiniNode : Closeable, AutoCloseable {
             return
         }
 
-        waitUntil(attempts = 5, delay = 2_000L) {
+        waitUntil(attempts = 5, delay = 2_000L, message = "Can not connect to ${p.name}") {
             connectOnce(p)
+        }
+    }
+
+    suspend fun disconnect() {
+        if(this.socket?.isRunning() == true) {
+            this.socket?.socket?.close()
         }
     }
 
@@ -192,7 +198,7 @@ open class MiniNode : Closeable, AutoCloseable {
                 handleMessage(it, p.name)
             }
 
-            val announceMsg = buildMessage(nextMessageId()) {
+            val announceMsg = buildMessage("0") {
                 announce = RpcAnnounce.newBuilder()
                     .setReply(false)
                     .setNodeInfo(metadata.toProto())
@@ -202,7 +208,9 @@ open class MiniNode : Closeable, AutoCloseable {
             peer.write(announceMsg)
 
             // wait for ANNOUNCE from a node
-            waitUntil(timeout = 5_000L) { nodeAnnouncedBack.get() }
+            waitUntil(timeout = 5_000L, message = "${p.name} did not ANNOUNCE back") {
+                nodeAnnouncedBack.get()
+            }
             this.socket = peer
             return true
         } catch (e: Exception) {

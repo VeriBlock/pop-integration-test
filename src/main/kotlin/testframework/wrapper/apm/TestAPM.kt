@@ -8,6 +8,7 @@ import testframework.waitUntil
 import testframework.wrapper.nodecore.TestNodecore
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.wait.strategy.Wait
 import java.io.Closeable
 import java.io.File
 
@@ -36,6 +37,7 @@ class TestAPM(
         .withCreateContainerCmdModifier { it.withTty(true) }
         .withEnv("APM_LOG_LEVEL", "DEBUG")
         .withEnv("APM_CONSOLE_LOG_LEVEL", "INFO")
+        .waitingFor(Wait.forLogMessage(".*Starting miner.*", 1))
 
 
     fun getAddress(): String {

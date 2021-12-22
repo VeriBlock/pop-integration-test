@@ -17,7 +17,6 @@ import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.services.SerializeDeserializeService
 import java.security.Security
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PopMiningTest : BaseIntegrationTest() {
     init {
         // for VPM

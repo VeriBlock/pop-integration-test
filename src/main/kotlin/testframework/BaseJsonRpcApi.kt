@@ -23,6 +23,7 @@ open class BaseJsonRpcApi(
     password: String = "",
     timeoutMillis: Long = 10_000L
 ) {
+    val logger = LoggerFactory.getLogger(name)
     protected val apiConfig = HttpApiConfig("http://${host}:${port}/${suffix}")
     protected val httpClient = createHttpClient(HttpAuthConfig(username, password), timeoutMillis = timeoutMillis)
 
@@ -38,8 +39,4 @@ open class BaseJsonRpcApi(
         logger.debug("$name --jsonrpc--> $response")
         return response.handle()
     }.handle()
-
-    companion object {
-        val logger = LoggerFactory.getLogger("BaseJsonRpcApi")
-    }
 }

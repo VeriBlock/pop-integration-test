@@ -15,6 +15,7 @@ import testframework.wrapper.nodecore.MiniNode
 import kotlin.test.Test
 import org.veriblock.extensions.ledger.LedgerProofWithContext
 import org.veriblock.sdk.models.Address
+import kotlin.test.fail
 
 private class LedgerProofVerifier : MiniNode() {
     var reply: RpcLedgerProofReply? = null
@@ -26,7 +27,6 @@ private class LedgerProofVerifier : MiniNode() {
     }
 }
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LedgerProofTest : BaseIntegrationTest() {
     // exists, has VBK
     private val addr1 = randomAddress()
@@ -44,15 +44,25 @@ class LedgerProofTest : BaseIntegrationTest() {
         nc.start()
     }
 
+    private suspend fun ensureMiniNodeIsConnected() {
+        val info = nodecores[0].http.getPeerInfo()
+        if (info.connectedNodes.size != 1) {
+            logger.error(info.toString())
+            fail()
+        }
+    }
+
     override suspend fun runTest() {
         logger.info("Running LedgerProof test!")
 
+        delay(5_000)
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
-        val peerinfo = nodecores[0].http.getPeerInfo()
-        peerinfo.connectedNodes shouldHaveSize 1
+        ensureMiniNodeIsConnected()
 
         nodecores[0].http.generateBlocks(100, addr1.toString())
+
+        ensureMiniNodeIsConnected()
 
         val req = RpcEvent.newBuilder()
             .setLedgerProofRequest(
@@ -65,8 +75,11 @@ class LedgerProofTest : BaseIntegrationTest() {
             .build()
 
         n.sendEvent(req)
+
+        ensureMiniNodeIsConnected()
+
         // wait until reply is received
-        waitUntil { n.reply != null }
+        waitUntil(message = "Did not get reply for LedgerProofRequest") { n.reply != null }
         val reply = n.reply!!
 
         logger.debug(reply.toString())

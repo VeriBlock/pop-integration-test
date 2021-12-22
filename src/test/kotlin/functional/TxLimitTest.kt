@@ -13,7 +13,6 @@ import testframework.waitUntil
 import testframework.wrapper.apm.MineRequest
 import kotlin.test.Test
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TxLimitTest : BaseIntegrationTest() {
 
     class NoErrorException(message: String): Exception(message)

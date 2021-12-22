@@ -74,6 +74,7 @@ suspend fun waitUntil(
     attempts: Long = Long.MAX_VALUE,
     timeout: Long = 60_000L,
     delay: Long = 1_000L,
+    message: String = "",
     predicate: suspend () -> Boolean
 ) {
     var attempt = 0
@@ -87,7 +88,9 @@ suspend fun waitUntil(
     }
 
     // print the cause of failure
-    val s: StringBuilder = StringBuilder().append("waitUntil failed! ")
+    val s: StringBuilder = StringBuilder().append("waitUntil failed!\n")
+    s.append(message)
+    s.append("\n")
     if (attempt >= attempts) {
         s.append("Predicate not true after $attempt attempts")
     } else if (System.currentTimeMillis() >= timeEnd) {
