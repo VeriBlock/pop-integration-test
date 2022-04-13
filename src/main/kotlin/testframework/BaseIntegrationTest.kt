@@ -10,8 +10,8 @@ import testframework.wrapper.nodecore.TestNodecore
 import org.slf4j.LoggerFactory
 import testframework.wrapper.btcsq.TestBtcsq
 
-val nodecoreVersion = System.getenv("INT_NODECORE_VERSION") ?: "0.4.13-rc.12.dev.1"
-val apmVersion = System.getenv("INT_APM_VERSION") ?: "0.4.13-rc.12.dev.1"
+val nodecoreVersion = System.getenv("INT_NODECORE_VERSION") ?: "0.4.13-rc.14"
+val apmVersion = System.getenv("INT_APM_VERSION") ?: "0.4.13-rc.14"
 val btcsqVersion = System.getenv("INT_BTCSQ_VERSION") ?: "master-47363b0"
 
 enum class TestStatus(val state: String) {
