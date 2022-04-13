@@ -1,5 +1,6 @@
-package nodecore.testframework
+package testframework
 
+import org.slf4j.Logger
 import org.testcontainers.containers.output.OutputFrame
 import java.io.File
 import java.io.PrintWriter
@@ -11,7 +12,6 @@ class StdStreamLogger(
     private val stderr = File(datadir, "stderr")
     private val stdoutwriter: PrintWriter
     private val stderrwriter: PrintWriter
-    var useConsole = false
 
     init {
         if (!datadir.exists()) {
@@ -27,17 +27,28 @@ class StdStreamLogger(
         stderrwriter = stderr.printWriter()
     }
 
-    fun forward(): (OutputFrame) -> Unit = {
+    fun forward(logger: Logger, addEndl: Boolean = false): (OutputFrame) -> Unit = {
         when (it.type) {
             OutputFrame.OutputType.STDOUT -> {
-                if(useConsole) print(it.utf8String)
-                stdoutwriter.print(it.utf8String)
-                stdoutwriter.print('\n')
+                if (addEndl) {
+                    logger.debug(it.utf8String)
+                    stdoutwriter.println(it.utf8String)
+                } else {
+                    logger.debug(it.utf8String.dropLast(1))
+                    stdoutwriter.print(it.utf8String)
+                }
+
                 stdoutwriter.flush()
             }
             OutputFrame.OutputType.STDERR -> {
-                if(useConsole) System.err.print(it.utf8String)
-                stderrwriter.print(it.utf8String)
+                if (addEndl) {
+                    logger.error(it.utf8String)
+                    stdoutwriter.println(it.utf8String)
+                } else {
+                    logger.error(it.utf8String.dropLast(1))
+                    stdoutwriter.print(it.utf8String)
+                }
+
                 stderrwriter.flush()
             }
             else -> Unit

@@ -1,15 +1,18 @@
-package nodecore.testframework
+package testframework
 
-import kotlinx.coroutines.*
-import nodecore.testframework.wrapper.apm.ApmSettings
-import nodecore.testframework.wrapper.apm.TestAPM
-import nodecore.testframework.wrapper.nodecore.NodecoreSettings
-import nodecore.testframework.wrapper.nodecore.TestNodecore
-import nodecore.testframework.wrapper.vbtc.TestVBTC
-import nodecore.testframework.wrapper.vbtc.VBtcSettings
-import org.junit.ComparisonFailure
-import org.slf4j.LoggerFactory
 import java.io.File
+import kotlinx.coroutines.*
+import testframework.wrapper.apm.ApmSettings
+import testframework.wrapper.apm.TestAPM
+import testframework.wrapper.btcsq.BtcsqSettings
+import testframework.wrapper.nodecore.NodecoreSettings
+import testframework.wrapper.nodecore.TestNodecore
+import org.slf4j.LoggerFactory
+import testframework.wrapper.btcsq.TestBtcsq
+
+val nodecoreVersion = System.getenv("INT_NODECORE_VERSION") ?: "0.4.13-rc.14"
+val apmVersion = System.getenv("INT_APM_VERSION") ?: "0.4.13-rc.13"
+val btcsqVersion = System.getenv("INT_BTCSQ_VERSION") ?: "master-47363b0"
 
 enum class TestStatus(val state: String) {
     PASSED("PASSED"),
@@ -24,8 +27,8 @@ abstract class BaseIntegrationTest {
     // all instances of Altchain POP miners
     val apms = ArrayList<TestAPM>() /* empty by default */
     val nodecores = ArrayList<TestNodecore>() /* empty by default */
-    val vbtcs = ArrayList<TestVBTC>() /* empty by default */
-    val logger = LoggerFactory.getLogger("BaseIntegrationTest")
+    val btcsqs = ArrayList<TestBtcsq>() /* empty by default */
+    val logger = LoggerFactory.getLogger("Test")
     var baseNodecoreRpcPort = (23300)
     var baseNodecoreP2pPort = (23200)
     var baseNodecoreHttpPort = (23100)
@@ -35,8 +38,8 @@ abstract class BaseIntegrationTest {
     var baseBtcRpcPort = (25200)
     var baseBtcZmqPort = (25300)
     val baseDir: File = createTempDir(
-        prefix = "veriblock_${System.currentTimeMillis()}_",
-    )
+            prefix = "veriblock_${System.currentTimeMillis()}_",
+        )
 
     var status: TestStatus = TestStatus.FAILED
 
@@ -50,52 +53,60 @@ abstract class BaseIntegrationTest {
     // override this function to define network services
     abstract suspend fun setup()
 
-    fun addNodecore(version: String = "0.4.13-rc.12"): TestNodecore {
-        val ncSettings = NodecoreSettings(
-            peerPort = baseNodecoreP2pPort++,
-            rpcPort = baseNodecoreRpcPort++,
-            httpPort = baseNodecoreHttpPort++,
-            baseDir = baseDir,
-            index = nodecores.size,
-            progpowTime = progpowStartupTime,
-            network = "regtest"
-        )
+    fun addNodecore(version: String = nodecoreVersion): TestNodecore {
+        val ncSettings =
+            NodecoreSettings(
+                peerPort = baseNodecoreP2pPort++,
+                rpcPort = baseNodecoreRpcPort++,
+                httpPort = baseNodecoreHttpPort++,
+                baseDir = baseDir,
+                index = nodecores.size,
+                progpowTime = progpowStartupTime,
+                network = "regtest"
+            )
 
         val nc = TestNodecore(ncSettings, version)
         nodecores.add(nc)
-        logger.info("Setting up ${nc.name} with network=${ncSettings.network}")
+        logger.info("Setting up ${nc.name}:${nodecoreVersion} with network=${ncSettings.network}")
         return nc
     }
 
-    fun addAPM(node: TestNodecore, btcaltchains: List<BtcPluginInterface> = emptyList(), version: String = "0.4.13-rc.11"): TestAPM {
-        val apmSettings = ApmSettings(
-            index = apms.size,
-            p2pPort = baseApmP2pPort++,
-            httpPort = baseApmHttpPort++,
-            nodecore = node,
-            baseDir = baseDir,
-            btcaltchains = btcaltchains
-        )
+    fun addAPM(
+        node: TestNodecore,
+        btcaltchains: List<BtcPluginInterface> = emptyList(),
+        version: String = apmVersion
+    ): TestAPM {
+        val apmSettings =
+            ApmSettings(
+                index = apms.size,
+                p2pPort = baseApmP2pPort++,
+                httpPort = baseApmHttpPort++,
+                nodecore = node,
+                baseDir = baseDir,
+                btcaltchains = btcaltchains
+            )
 
         val apm = TestAPM(apmSettings, version)
         apms.add(apm)
-        logger.info("Setting up ${apm.name} connected to ${node.name} and BTC plugins: ${btcaltchains.joinToString { it.name() }}")
+        logger.info(
+            "Setting up ${apm.name}:${apmVersion} connected to ${node.name} and BTC plugins: ${btcaltchains.joinToString { it.name() }}"
+        )
         return apm
     }
 
-    fun addVBTC(version: String = "master-734a3a0"): TestVBTC {
-        val settings = VBtcSettings(
+    fun addBtcsq(version: String = btcsqVersion): TestBtcsq {
+        val settings = BtcsqSettings(
             p2pPort = baseBtcP2pPort++,
             rpcPort = baseBtcRpcPort++,
             zmqPort = baseBtcZmqPort++,
-            index = vbtcs.size,
+            index = btcsqs.size,
             baseDir = baseDir
         )
 
-        val vbtc = TestVBTC(settings, version)
-        vbtcs.add(vbtc)
-        logger.info("Setting up ${vbtc.name}")
-        return vbtc
+        val node = TestBtcsq(settings, version)
+        btcsqs.add(node)
+        logger.info("Setting up ${node.name}:${btcsqVersion}")
+        return node
     }
 
     // entry point for every test
@@ -112,22 +123,28 @@ abstract class BaseIntegrationTest {
             status = TestStatus.PASSED
             willCleanup = shouldCleanup
             exitCode = 0
-        } catch (e: ComparisonFailure) {
+        } catch (e: AssertionError) {
             logger.error("ASSERTION FAILED")
             e.printStackTrace()
-            status = TestStatus.FAILED
-            exitCode = 1
+            fail(e)
         } catch (e: Exception) {
             logger.error("UNHANDLED EXCEPTION")
-            e.printStackTrace()
-            status = TestStatus.FAILED
-            exitCode = 1
+            fail(e)
         } finally {
-            return shutdown()
+            shutdown()
         }
+
+        return 0
     }
 
-    private fun shutdown(): Int {
+    private fun fail(reason: Exception) {
+        throw RuntimeException("Test failed: \n${reason}")
+    }
+    private fun fail(reason: Error) {
+        throw RuntimeException("Test failed: \n${reason}")
+    }
+
+    private fun shutdown() {
         logger.info("Test ${status.state}!")
         logger.info("Logs are available in ${baseDir.absolutePath}")
         logger.info("Shutting down environment...")
@@ -141,16 +158,13 @@ abstract class BaseIntegrationTest {
 
         runBlocking {
             apms.map { async { it.close() } } +
-                nodecores.map { async { it.close() } } +
-                vbtcs.map { async { it.close() } }
-                    .awaitAll()
+                    nodecores.map { async { it.close() } } +
+                    btcsqs.map { async { it.close() } }.awaitAll()
         }
 
         nodecores.clear()
         apms.clear()
-        vbtcs.clear()
-
-        return exitCode
+        btcsqs.clear()
     }
 
     suspend fun syncAllApms(apms: List<TestAPM>, timeout: Long = 60_000 /*ms*/) {
@@ -158,59 +172,53 @@ abstract class BaseIntegrationTest {
 
         try {
             waitUntil(timeout = timeout) {
-                statuses = apms
-                    .map { it.http.getMinerInfo().status.isReady }
-
-                // if all getInfo returned same block,
-                // then we consider syncAll succeeded
+                statuses = apms.map { it.http.getMinerInfo().status.isReady }
                 return@waitUntil statuses.all { it }
             }
         } catch (e: TimeoutCancellationException) {
-            logger.error("syncBlocks failed: ${statuses.joinToString { "\n" }}")
+            logger.error("syncAllApms failed: ${statuses.joinToString { "\n" }}")
             throw e
         }
     }
 
     suspend fun syncAllNodecores(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
-        syncBlocks(nodecores, timeout)
-        syncMempools(nodecores, timeout)
+        syncNodecoreBlocks(nodecores, timeout)
+        syncNodecoreMempools(nodecores, timeout)
     }
-    
-    suspend fun syncBlocks(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+
+    suspend fun syncNodecoreBlocks(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
         var hashes: List<String> = emptyList()
-        
+
         try {
             waitUntil(timeout = timeout) {
-                hashes = nodecores
-                    .map { it.http.getInfo().lastBlock.hash }
-                
+                hashes = nodecores.map { it.http.getInfo().lastBlock.hash }
+
                 // if all getInfo returned same block,
                 // then we consider syncAll succeeded
                 return@waitUntil hashes.toSet().size == 1
             }
         } catch (e: TimeoutCancellationException) {
-            logger.error("syncBlocks failed: ${hashes.joinToString { "\n" }}")
+            logger.error("syncNodecoreBlocks failed: ${hashes.joinToString { "\n" }}")
             throw e
         }
     }
-    
-    suspend fun syncMempools(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
+
+    suspend fun syncNodecoreMempools(nodecores: List<TestNodecore>, timeout: Long = 60_000 /*ms*/) {
         var transactions: List<List<String>> = emptyList()
-        
+
         try {
             waitUntil(timeout = timeout) {
-                transactions = nodecores
-                    .map {
-                        it.http.getPendingTransactions()
-                            .transactions.map { it.txId }.sorted()
+                transactions =
+                    nodecores.map {
+                        it.http.getPendingTransactions().transactions.map { it.txId }.sorted()
                     }
-                
+
                 // if all getInfo returned same block,
                 // then we consider syncAll succeeded
                 return@waitUntil transactions.toSet().size == 1
             }
         } catch (e: TimeoutCancellationException) {
-            logger.error("syncMempools failed: ${transactions.joinToString { "\n" }}")
+            logger.error("syncNodecoreMempools failed: ${transactions.joinToString { "\n" }}")
             throw e
         }
     }

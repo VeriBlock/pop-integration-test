@@ -1,14 +1,17 @@
-package nodecore.testframework.wrapper.nodecore
+package testframework.wrapper.nodecore
 
 import io.grpc.Deadline
+import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import nodecore.api.grpc.AdminGrpc
-import nodecore.testframework.StdStreamLogger
-import nodecore.testframework.KGenericContainer
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.containers.wait.strategy.WaitStrategy
+import testframework.KGenericContainer
+import testframework.StdStreamLogger
 import java.io.Closeable
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -27,8 +30,7 @@ class NodecoreSettings(
 class TestNodecore(
     val settings: NodecoreSettings,
     version: String,
-) : Closeable, AutoCloseable
-{
+) : Closeable, AutoCloseable {
     val name = "nodecore${settings.index}"
     private val logger = LoggerFactory.getLogger(name)
     val datadir = File(settings.baseDir, name)
@@ -38,14 +40,28 @@ class TestNodecore(
 
     val container = KGenericContainer("veriblock/nodecore:$version")
         .withNetworkAliases(name)
-        .withNetworkMode("host")
         .withFileSystemBind(datadir.absolutePath, "/data", BindMode.READ_WRITE)
         .withEnv("NODECORE_LOG_LEVEL", "DEBUG")
         .withEnv("NODECORE_CONSOLE_LOG_LEVEL", "DEBUG")
+        .waitingFor(Wait.forLogMessage(".*NodeCore operating state is now: Running.*", 1))
+
+    fun getAddress(): String {
+        // we can take IP only on running containers
+        assert(container.isRunning)
+        return container
+            .containerInfo
+            .networkSettings
+            .networks
+            .entries
+            .first()
+            .value
+            .ipAddress!!
+    }
 
     // Accessor for Admin HTTP API
-    val http = NodeHttpApi(name, "127.0.0.1", settings.httpPort)
-    val rpc: AdminGrpc.AdminBlockingStub
+    lateinit var http: NodeHttpApi
+    lateinit var rpc: AdminGrpc.AdminBlockingStub
+    private lateinit var channel: ManagedChannel
 
     init {
         datadir.mkdirs()
@@ -55,31 +71,20 @@ class TestNodecore(
         nodecoreProperties.setReadable(true, false)
         nodecoreProperties.setWritable(true, false)
 
-        // setup RPC channel
-        rpc = AdminGrpc
-            .newBlockingStub(
-                ManagedChannelBuilder
-                    .forAddress("127.0.0.1", settings.rpcPort)
-                    .usePlaintext()
-                    .build()
-            )
-            .withMaxInboundMessageSize(20 * 1024 * 1024)
-            .withMaxOutboundMessageSize(20 * 1024 * 1024)
-            .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
-
         // write nodecode.properties
         nodecoreProperties
             .writeText(
                 """
+                bfi.enabled=false
                 network=${settings.network}
                 peer.bootstrap.enabled=false
-                peer.bind.address=127.0.0.1
+                peer.bind.address=0.0.0.0
                 peer.bind.port=${settings.peerPort}
                 peer.share.platform=true
                 peer.share.myAddress=true
-                rpc.bind.address=127.0.0.1
+                rpc.bind.address=0.0.0.0
                 rpc.bind.port=${settings.rpcPort}
-                http.api.bind.address=127.0.0.1
+                http.api.bind.address=0.0.0.0
                 http.api.bind.port=${settings.httpPort}
                 regtest.progpow.height=${settings.progpowHeight}
                 regtest.progpow.start.time=${settings.progpowTime}
@@ -89,7 +94,22 @@ class TestNodecore(
 
     suspend fun start() {
         container.start()
-        container.followOutput(stdlog.forward())
+        container.followOutput(stdlog.forward(logger))
+        logger.info("IP: ${getAddress()}")
+
+        channel = ManagedChannelBuilder
+            .forAddress(getAddress(), settings.rpcPort)
+            .usePlaintext()
+            .build()
+
+        // setup RPC channel
+        rpc = AdminGrpc
+            .newBlockingStub(channel)
+            .withMaxInboundMessageSize(20 * 1024 * 1024)
+            .withMaxOutboundMessageSize(20 * 1024 * 1024)
+            .withDeadline(Deadline.after(rpcTimeout, TimeUnit.MILLISECONDS))
+
+        http = NodeHttpApi(name, getAddress(), settings.httpPort)
 
         waitForRpcConnection()
     }
@@ -100,6 +120,10 @@ class TestNodecore(
     }
 
     fun stop() {
+        // don't forget to shutdown channel
+        if (!channel.isShutdown) {
+            channel.shutdownNow()
+        }
         container.stop()
     }
 

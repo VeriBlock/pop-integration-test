@@ -1,4 +1,4 @@
-package nodecore.testframework.wrapper.apm
+package testframework.wrapper.apm
 
 import io.ktor.client.*
 import io.ktor.client.features.*
@@ -8,6 +8,8 @@ import io.ktor.http.*
 import org.slf4j.LoggerFactory
 
 class ApmHttpApi(val name: String, _host: String, _port: Int) {
+    val logger = LoggerFactory.getLogger(name)
+
     data class MinerInfoResponse(
         val vbkAddress: String,
         val vbkBalance: Long,
@@ -66,10 +68,5 @@ class ApmHttpApi(val name: String, _host: String, _port: Int) {
         }
         logger.debug("$name --http--> $ret")
         return ret
-    }
-
-
-    companion object {
-        val logger = LoggerFactory.getLogger("ApmHttpApi")
     }
 }

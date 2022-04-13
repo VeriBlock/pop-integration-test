@@ -1,6 +1,7 @@
 package functional
 
 import com.google.protobuf.ByteString
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.*
 import nodecore.api.grpc.RpcEvent
@@ -8,11 +9,13 @@ import nodecore.api.grpc.RpcLedgerProofReply
 import nodecore.api.grpc.RpcLedgerProofReply.*
 import nodecore.api.grpc.RpcLedgerProofRequest
 import nodecore.api.grpc.utilities.ByteStringAddressUtility
-import nodecore.testframework.*
-import nodecore.testframework.wrapper.nodecore.MiniNode
+import org.junit.jupiter.api.TestInstance
+import testframework.*
+import testframework.wrapper.nodecore.MiniNode
 import kotlin.test.Test
 import org.veriblock.extensions.ledger.LedgerProofWithContext
 import org.veriblock.sdk.models.Address
+import kotlin.test.fail
 
 private class LedgerProofVerifier : MiniNode() {
     var reply: RpcLedgerProofReply? = null
@@ -24,15 +27,15 @@ private class LedgerProofVerifier : MiniNode() {
     }
 }
 
-internal class LedgerProofTest : BaseIntegrationTest() {
+class LedgerProofTest : BaseIntegrationTest() {
     // exists, has VBK
-    val addr1 = randomAddress()
+    private val addr1 = randomAddress()
 
     // does not exist, has no VBK
-    val addr2 = randomAddress()
-    val badAddr = "Not An Address"
+    private val addr2 = randomAddress()
+    private val badAddr = "Not An Address"
 
-    fun addr2bytes(addr: Address): ByteString {
+    private fun addr2bytes(addr: Address): ByteString {
         return ByteStringAddressUtility.createProperByteStringAutomatically(addr.toString())
     }
 
@@ -41,13 +44,25 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         nc.start()
     }
 
+    private suspend fun ensureMiniNodeIsConnected() {
+        val info = nodecores[0].http.getPeerInfo()
+        if (info.connectedNodes.size != 1) {
+            logger.error(info.toString())
+            fail()
+        }
+    }
+
     override suspend fun runTest() {
         logger.info("Running LedgerProof test!")
 
+        delay(5_000)
         val n = LedgerProofVerifier()
         n.connect(nodecores[0])
+        ensureMiniNodeIsConnected()
 
         nodecores[0].http.generateBlocks(100, addr1.toString())
+
+        ensureMiniNodeIsConnected()
 
         val req = RpcEvent.newBuilder()
             .setLedgerProofRequest(
@@ -60,8 +75,11 @@ internal class LedgerProofTest : BaseIntegrationTest() {
             .build()
 
         n.sendEvent(req)
+
+        ensureMiniNodeIsConnected()
+
         // wait until reply is received
-        waitUntil { n.reply != null }
+        waitUntil(message = "Did not get reply for LedgerProofRequest") { n.reply != null }
         val reply = n.reply!!
 
         logger.debug(reply.toString())
@@ -74,10 +92,10 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         checkProofOfNonExistence(list[1])
     }
 
-    fun checkProofOfExistence(e: LedgerProofResult) {
+    private fun checkProofOfExistence(e: LedgerProofResult) {
         e.result shouldBe Status.ADDRESS_EXISTS
 
-        // throws is proof is invalid
+        // throws if proof is invalid
         val proof = LedgerProofWithContext.parseFrom(
             e.ledgerProofWithContext
         )
@@ -85,7 +103,7 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         proof.ledgerAddress shouldBe addr1.toString()
     }
 
-    fun checkProofOfNonExistence(e: LedgerProofResult) {
+    private fun checkProofOfNonExistence(e: LedgerProofResult) {
         e.result shouldBe Status.ADDRESS_DOES_NOT_EXIST
 
         // throws if proof is invalid
@@ -94,11 +112,6 @@ internal class LedgerProofTest : BaseIntegrationTest() {
         )
 
         proof.ledgerAddress shouldBe addr2.toString()
-    }
-
-    fun checkInvalidAddr(e: LedgerProofResult) {
-        e.address.toString("UTF-8") shouldBe badAddr
-        e.result shouldBe Status.ADDRESS_IS_INVALID
     }
 
     @Test

@@ -1,13 +1,14 @@
-package nodecore.testframework.wrapper.apm
+package testframework.wrapper.apm
 
 import kotlinx.coroutines.runBlocking
-import nodecore.testframework.StdStreamLogger
-import nodecore.testframework.BtcPluginInterface
-import nodecore.testframework.KGenericContainer
-import nodecore.testframework.waitUntil
-import nodecore.testframework.wrapper.nodecore.TestNodecore
+import testframework.StdStreamLogger
+import testframework.BtcPluginInterface
+import testframework.KGenericContainer
+import testframework.waitUntil
+import testframework.wrapper.nodecore.TestNodecore
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.wait.strategy.Wait
 import java.io.Closeable
 import java.io.File
 
@@ -31,16 +32,29 @@ class TestAPM(
     val datadir = File(settings.baseDir, name)
     val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/altchain-pop-miner:$version")
-        .withNetworkMode("host")
         .withNetworkAliases(name)
         .withFileSystemBind(datadir.absolutePath, "/data", BindMode.READ_WRITE)
         .withCreateContainerCmdModifier { it.withTty(true) }
         .withEnv("APM_LOG_LEVEL", "DEBUG")
-        .withEnv("APM_CONSOLE_LOG_LEVEL", "DEBUG")
+        .withEnv("APM_CONSOLE_LOG_LEVEL", "INFO")
+        .waitingFor(Wait.forLogMessage(".*Starting miner.*", 1))
 
+
+    fun getAddress(): String {
+        // we can take IP only on running containers
+        assert(container.isRunning)
+        return container
+            .containerInfo
+            .networkSettings
+            .networks
+            .entries
+            .first()
+            .value
+            .ipAddress!!
+    }
 
     val applicationConf = File(datadir, "application.conf")
-    val http = ApmHttpApi(name, container.host, settings.httpPort)
+    lateinit var http: ApmHttpApi
     val vbkAddress by lazy {
         runBlocking {
             http.getMinerInfo().vbkAddress
@@ -55,7 +69,7 @@ class TestAPM(
                 pluginKey: btc
                 id: ${it.id()}
                 name: "${it.name()}"
-                host: "http://127.0.0.1:${it.port()}"
+                host: "http://${it.host()}:${it.port()}"
                 auth: {
                     username: "${it.username()}"
                     password: "${it.password()}"
@@ -78,9 +92,10 @@ class TestAPM(
               feePerByte: 1000
               maxFee: 10000000
               api {
+                host: 0.0.0.0
                 port: ${settings.httpPort}
               }
-              connectDirectlyTo: ["127.0.0.1:${settings.nodecore.settings.peerPort}"]
+              connectDirectlyTo: ["${settings.nodecore.getAddress()}:${settings.nodecore.settings.peerPort}"]
               network: ${settings.nodecore.settings.network}
               dataDir: /data
               progPowGenesis: true
@@ -95,7 +110,10 @@ class TestAPM(
 
     suspend fun start() {
         container.start()
-        container.followOutput(stdlog.forward())
+        container.followOutput(stdlog.forward(logger, true))
+        logger.info("IP: ${getAddress()}")
+        http = ApmHttpApi(name, getAddress(), settings.httpPort)
+
         waitForHttpApiAvailability()
     }
 
@@ -109,7 +127,7 @@ class TestAPM(
     }
 
     private suspend fun waitForHttpApiAvailability() {
-        waitUntil(timeout = 30_000L, delay = 2_000L) {
+        waitUntil(timeout = 60_000L, delay = 5_000L) {
             try {
                 http.getMinerInfo()
                 return@waitUntil true

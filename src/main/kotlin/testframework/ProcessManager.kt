@@ -1,4 +1,4 @@
-package nodecore.testframework
+package testframework
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory

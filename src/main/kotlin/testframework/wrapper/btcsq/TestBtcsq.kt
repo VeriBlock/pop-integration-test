@@ -1,17 +1,18 @@
-package nodecore.testframework.wrapper.vbtc
+package testframework.wrapper.btcsq
 
 import kotlinx.coroutines.runBlocking
-import nodecore.testframework.StdStreamLogger
-import nodecore.testframework.BtcPluginInterface
-import nodecore.testframework.KGenericContainer
-import nodecore.testframework.waitUntil
+import testframework.StdStreamLogger
+import testframework.BtcPluginInterface
+import testframework.KGenericContainer
+import testframework.waitUntil
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.BindMode
+import org.testcontainers.containers.wait.strategy.Wait
 import java.io.Closeable
 import java.io.File
 
-class TestVBTC(
-    val settings: VBtcSettings,
+class TestBtcsq(
+    val settings: BtcsqSettings,
     version: String
 ): BtcPluginInterface, Closeable, AutoCloseable {
 
@@ -21,20 +22,26 @@ class TestVBTC(
     val stdlog = StdStreamLogger(datadir)
     val container = KGenericContainer("veriblock/btcsq:$version")
         .withNetworkAliases(name)
-        .withNetworkMode("host")
-        .withFileSystemBind(datadir.absolutePath, "/home/vbitcoin/.vbitcoin", BindMode.READ_WRITE)
+        .withFileSystemBind(datadir.absolutePath, "/home/btcsq/.btcsq", BindMode.READ_WRITE)
         .withCommand("btcsqd")
+        .waitingFor(Wait.forLogMessage(".*tree best height =.*", 3))
+
+    fun getAddress(): String {
+        // we can take IP only on running containers
+        assert(container.isRunning)
+        return container
+            .containerInfo
+            .networkSettings
+            .networks
+            .entries
+            .first()
+            .value
+            .ipAddress!!
+    }
 
     val conf =  File(datadir, "btcsq.conf")
 
-    val rpc = VBTCApi(
-        name,
-        container.host,
-        settings.rpcPort,
-        settings.username,
-        settings.password,
-        60000
-    )
+    lateinit var rpc: BtcsqApi
 
 
     init {
@@ -68,6 +75,9 @@ class TestVBTC(
                 rpcpassword=${settings.password}
 
                 poplogverbosity=info
+                debug=1
+                debugexclude=leveldb
+                debugexclude=libevent
                 
                 [regtest]
                 port=${settings.p2pPort}
@@ -79,7 +89,18 @@ class TestVBTC(
 
     suspend fun start() {
         container.start()
-        container.followOutput(stdlog.forward())
+        container.followOutput(stdlog.forward(logger))
+        logger.info("IP: ${getAddress()}")
+
+        rpc = BtcsqApi(
+            name,
+            getAddress(),
+            settings.rpcPort,
+            settings.username,
+            settings.password,
+            60000
+        )
+
         waitForRpcAvailability()
     }
 
@@ -118,7 +139,8 @@ class TestVBTC(
     }
     override fun username(): String = settings.username
     override fun password(): String = settings.password
-    override fun id(): Long = 0x3ae6ca000026ff
+    override fun id(): Long = 0x3ae6ca26ff
+    override fun host(): String = getAddress()
     override fun port(): Int = settings.rpcPort
     override fun network(): String = settings.bitcoinNetwork
     override fun payoutDelay(): Int = 150

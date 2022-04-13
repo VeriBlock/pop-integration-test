@@ -1,10 +1,19 @@
-package nodecore.testframework
+package testframework
 
+import testframework.util.JsonRpcRequestBody
+import testframework.util.RpcResponse
+import testframework.util.handle
+import testframework.util.toJson
 import io.ktor.client.request.*
-import nodecore.api.*
 import org.slf4j.LoggerFactory
+import testframework.util.HttpApiConfig
+import testframework.util.HttpAuthConfig
+import testframework.util.createHttpClient
 import java.util.*
 
+/**
+ * All JSONRPC Apis should extend from this class.
+ */
 open class BaseJsonRpcApi(
     val name: String,
     host: String,
@@ -12,8 +21,9 @@ open class BaseJsonRpcApi(
     suffix: String = "",
     username: String = "",
     password: String = "",
-    timeoutMillis: Long = 0
+    timeoutMillis: Long = 10_000L
 ) {
+    val logger = LoggerFactory.getLogger(name)
     protected val apiConfig = HttpApiConfig("http://${host}:${port}/${suffix}")
     protected val httpClient = createHttpClient(HttpAuthConfig(username, password), timeoutMillis = timeoutMillis)
 
@@ -29,8 +39,4 @@ open class BaseJsonRpcApi(
         logger.debug("$name --jsonrpc--> $response")
         return response.handle()
     }.handle()
-
-    companion object {
-        val logger = LoggerFactory.getLogger("BaseJsonRpcApi")
-    }
 }

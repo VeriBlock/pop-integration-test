@@ -1,4 +1,4 @@
-package nodecore.testframework.wrapper.vbtc
+package testframework.wrapper.btcsq
 
 import kotlinx.serialization.Serializable
 

@@ -1,23 +1,24 @@
-package nodecore.testframework
+package testframework
 
 import com.google.protobuf.ByteString
 import kotlinx.coroutines.delay
 import nodecore.api.grpc.RpcEvent
 import nodecore.api.grpc.utilities.ByteStringUtility
-import nodecore.testframework.wrapper.apm.TestAPM
-import nodecore.testframework.wrapper.nodecore.BitcoinBlockHeader
-import nodecore.testframework.wrapper.nodecore.Endpoint
-import nodecore.testframework.wrapper.nodecore.SubmitPopRequest
-import nodecore.testframework.wrapper.nodecore.TestNodecore
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
 import org.veriblock.core.wallet.AddressKeyGenerator
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
+import testframework.wrapper.apm.TestAPM
+import testframework.wrapper.nodecore.BitcoinBlockHeader
+import testframework.wrapper.nodecore.Endpoint
+import testframework.wrapper.nodecore.SubmitPopRequest
+import testframework.wrapper.nodecore.TestNodecore
 import java.net.ServerSocket
 import java.security.KeyPair
+import java.security.SecureRandom
 import java.util.concurrent.TimeoutException
-
+import kotlin.random.Random
 
 fun isPortAvailable(port: Int): Boolean {
     try {
@@ -31,11 +32,18 @@ fun isPortAvailable(port: Int): Boolean {
     return false
 }
 
+fun getNextAvailablePort(basePort: Int): Int {
+    var port = basePort
+    while (!isPortAvailable(port++)) {
+    }
+    return port
+}
+
 suspend fun connectNodes(a: TestNodecore, b: TestNodecore) {
     a.http.addNode(
         listOf(
             Endpoint(
-                address = "127.0.0.1",
+                address = b.getAddress(),
                 port = b.settings.peerPort
             )
         )
@@ -62,7 +70,13 @@ fun buildMessage(
     .build()
 
 // sleep until the predicate resolves to be True
-suspend fun waitUntil(attempts: Long = Long.MAX_VALUE, timeout: Long = 60_000L, delay: Long = 1_000L, predicate: suspend () -> Boolean) {
+suspend fun waitUntil(
+    attempts: Long = Long.MAX_VALUE,
+    timeout: Long = 60_000L,
+    delay: Long = 1_000L,
+    message: String = "",
+    predicate: suspend () -> Boolean
+) {
     var attempt = 0
     val timeEnd = System.currentTimeMillis() + timeout
     while (attempt++ < attempts && System.currentTimeMillis() < timeEnd) {
@@ -74,7 +88,9 @@ suspend fun waitUntil(attempts: Long = Long.MAX_VALUE, timeout: Long = 60_000L, 
     }
 
     // print the cause of failure
-    val s: StringBuilder = StringBuilder().append("waitUntil failed! ")
+    val s: StringBuilder = StringBuilder().append("waitUntil failed!\n")
+    s.append(message)
+    s.append("\n")
     if (attempt >= attempts) {
         s.append("Predicate not true after $attempt attempts")
     } else if (System.currentTimeMillis() >= timeEnd) {

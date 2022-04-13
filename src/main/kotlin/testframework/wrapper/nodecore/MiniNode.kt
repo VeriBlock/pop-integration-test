@@ -1,4 +1,4 @@
-package nodecore.testframework.wrapper.nodecore
+package testframework.wrapper.nodecore
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import io.ktor.network.selector.*
@@ -10,8 +10,9 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import nodecore.api.grpc.RpcAnnounce
 import nodecore.api.grpc.RpcEvent
 import nodecore.api.grpc.RpcNodeInfo
-import nodecore.testframework.buildMessage
+import testframework.buildMessage
 import org.slf4j.LoggerFactory
+import testframework.waitUntil
 import java.io.Closeable
 import java.io.EOFException
 import java.io.IOException
@@ -54,13 +55,16 @@ private class PeerSocket(
         start()
     }
 
-    fun write(message: RpcEvent) {
+    fun write(message: RpcEvent, failOnError: Boolean = true) {
         logger.debug("$peerName <--p2p-- ${message.resultsCase.name}")
         try {
             if (!writeQueue.offer(message)) {
                 logger.warn(
                     "Not writing event ${message.resultsCase.name} to peer $peerName because write queue is full."
                 )
+                if (failOnError) {
+                    throw RuntimeException("$peerName: Write queue is full")
+                }
             }
         } catch (e: InterruptedException) {
             logger.warn("Output stream thread shutting down for peer $peerName")
@@ -147,36 +151,14 @@ private class PeerSocket(
 }
 
 
-data class NodeMetadata(
-    var application: String = "",
-    var platform: String = "",
-    var startTimestamp: Int = 1552064237,
-    var id: String = "Test",
-    var port: Int = 12345,
-    // mainnet, regtest, alphanet == 3
-    // testnet, testnet_progpow == 2
-    var protocolVersion: Int = 3
-) {
-    fun toProto(): RpcNodeInfo {
-        return RpcNodeInfo.newBuilder()
-            .setApplication(application)
-            .setPlatform(platform)
-            .setStartTimestamp(startTimestamp)
-            .setId(id)
-            .setPort(port)
-            .setShare(false)
-            .setProtocolVersion(protocolVersion)
-            .build()
-    }
-}
-
-
 open class MiniNode : Closeable, AutoCloseable {
     // connected to this node
     private var socket: PeerSocket? = null
     val stats: HashMap<String, Long> = HashMap()
     val identity = AtomicLong(0)
-    val metadata: NodeMetadata = NodeMetadata()
+    val metadata: NodeInfo = NodeInfo()
+
+    private var nodeAnnouncedBack = AtomicBoolean(false)
 
     fun nextMessageId(): String {
         return identity.incrementAndGet().toString()
@@ -186,38 +168,54 @@ open class MiniNode : Closeable, AutoCloseable {
         return socket?.peerName
     }
 
-    suspend fun connect(p: TestNodecore, shouldAnnounce: Boolean = true) {
+    suspend fun connect(p: TestNodecore) {
         if (socket != null) {
-            logger.warn("Already connected to ${peerName()}, disconnect first")
+            logger.warn("Already connected to ${p.name}, disconnect first")
             return
         }
-        val address = NetworkAddress("127.0.0.1", p.settings.peerPort)
-        logger.debug("Connecting to node${p.settings.index}")
 
+        waitUntil(attempts = 5, delay = 2_000L, message = "Can not connect to ${p.name}") {
+            connectOnce(p)
+        }
+    }
+
+    suspend fun disconnect() {
+        if(this.socket?.isRunning() == true) {
+            this.socket?.socket?.close()
+        }
+    }
+
+    private suspend fun connectOnce(p: TestNodecore): Boolean {
         try {
-            val socket = PeerSocket(
-                p,
-                aSocket(selectorManager)
-                    .tcp()
-                    .connect(address)
-            ) {
-                handleMessage(it)
+            val address = NetworkAddress(p.getAddress(), p.settings.peerPort)
+            logger.debug("Connecting to ${p.name}")
+
+            val socket = aSocket(selectorManager)
+                .tcp()
+                .connect(address)
+
+            val peer = PeerSocket(p, socket) {
+                handleMessage(it, p.name)
             }
 
-            if (shouldAnnounce) {
-                val announceMsg = buildMessage(nextMessageId()) {
-                    announce = RpcAnnounce.newBuilder()
-                        .setReply(false)
-                        .setNodeInfo(metadata.toProto())
-                        .build()
-                }
-
-                socket.write(announceMsg)
+            val announceMsg = buildMessage("0") {
+                announce = RpcAnnounce.newBuilder()
+                    .setReply(false)
+                    .setNodeInfo(metadata.toProto())
+                    .build()
             }
-            this.socket = socket
+
+            peer.write(announceMsg)
+
+            // wait for ANNOUNCE from a node
+            waitUntil(timeout = 5_000L, message = "${p.name} did not ANNOUNCE back") {
+                nodeAnnouncedBack.get()
+            }
+            this.socket = peer
+            return true
         } catch (e: Exception) {
-            logger.error("Unable to connect to ${peerName()}")
-            throw e
+            logger.error("Unable to connect to ${p.name}: $e")
+            return false
         }
     }
 
@@ -242,17 +240,23 @@ open class MiniNode : Closeable, AutoCloseable {
         socket.write(e)
     }
 
-    private suspend fun handleMessage(buf: ByteArray) {
+    private suspend fun handleMessage(buf: ByteArray, name: String) {
         try {
             val event = RpcEvent.parseFrom(buf)
-            logger.debug("${peerName()} --p2p--> ${event.resultsCase.name}")
+            logger.debug("$name --p2p--> ${event.resultsCase.name}")
             // store stats about received msgs
             val count = stats.getOrDefault(event.resultsCase.name, 0L)
             stats[event.resultsCase.name] = count + 1
+
+            // if this is announce back, then release "connect"
+            if (event.hasAnnounce()) {
+                this.nodeAnnouncedBack.set(true)
+            }
+
             // let user handle msg
             onEvent(event)
         } catch (e: Exception) {
-            logger.error("${peerName()} misbehaved! Can't parse Event of size ${buf.size}.")
+            logger.error("$name misbehaved! Can't parse Event of size ${buf.size}.")
             close()
             return
         }

@@ -1,13 +1,8 @@
-package nodecore.testframework.wrapper.nodecore
+package testframework.wrapper.nodecore
 
-import nodecore.api.GetPendingTransactionsReply
-import nodecore.api.SendCoinsReply
-import nodecore.api.SendCoinsRequest
-import nodecore.api.grpc.RpcGetPendingTransactionsReply
-import nodecore.api.grpc.RpcSendCoinsReply
-import nodecore.api.grpc.RpcSendCoinsRequest
-import nodecore.testframework.BaseJsonRpcApi
-import nodecore.testframework.toRequest
+import nodecore.api.grpc.RpcGetPeerInfoReply
+import testframework.BaseJsonRpcApi
+import testframework.toRequest
 import org.veriblock.sdk.models.Address
 import org.veriblock.sdk.models.VeriBlockPopTransaction
 
@@ -26,8 +21,8 @@ class NodeHttpApi(
         method = "getinfo"
     )
 
-    suspend fun getStateInfo(): VbkInfo = performRequest(
-        method = "getstateinfo"
+    suspend fun getPeerInfo(): GetPeerInfoReply = performRequest(
+        method = "getpeerinfo"
     )
 
     suspend fun addNode(e: List<Endpoint>): ProtocolReply = performRequest(

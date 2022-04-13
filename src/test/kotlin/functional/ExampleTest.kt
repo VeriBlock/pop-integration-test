@@ -7,10 +7,11 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import nodecore.api.grpc.RpcEvent
-import nodecore.testframework.BaseIntegrationTest
-import nodecore.testframework.wrapper.nodecore.MiniNode
-import nodecore.testframework.connectNodes
-import nodecore.testframework.randomAddress
+import org.junit.jupiter.api.TestInstance
+import testframework.BaseIntegrationTest
+import testframework.wrapper.nodecore.MiniNode
+import testframework.connectNodes
+import testframework.randomAddress
 import kotlin.test.Test
 import org.veriblock.core.utilities.createLogger
 
@@ -21,7 +22,7 @@ private class ExampleMiniNode : MiniNode() {
     }
 }
 
-internal class ExampleTest : BaseIntegrationTest() {
+class ExampleTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
         addNodecore()
         addNodecore()

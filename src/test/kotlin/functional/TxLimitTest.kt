@@ -5,11 +5,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import nodecore.testframework.BaseIntegrationTest
-import nodecore.testframework.connectNodes
-import nodecore.testframework.topUpApmWallet
-import nodecore.testframework.waitUntil
-import nodecore.testframework.wrapper.apm.MineRequest
+import org.junit.jupiter.api.TestInstance
+import testframework.BaseIntegrationTest
+import testframework.connectNodes
+import testframework.topUpApmWallet
+import testframework.waitUntil
+import testframework.wrapper.apm.MineRequest
 import kotlin.test.Test
 
 class TxLimitTest : BaseIntegrationTest() {
@@ -29,7 +30,7 @@ class TxLimitTest : BaseIntegrationTest() {
             connectNodes(nodecores[i + 1], nodecores[i])
         }
 
-        val vbtc = addVBTC()
+        val vbtc = addBtcsq()
         vbtc.start()
         vbtc.mineUntilPopEnabled()
 
@@ -46,7 +47,7 @@ class TxLimitTest : BaseIntegrationTest() {
         val TX_LIMIT = 900
         logger.info("Create ${TX_LIMIT} transactions")
         for (i in 1..TX_LIMIT) {
-            apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 200))
+            apms[0].http.mine(MineRequest(chainSymbol = btcsqs[0].name, 200))
         }
 
         waitUntil {
@@ -57,7 +58,7 @@ class TxLimitTest : BaseIntegrationTest() {
 
         logger.info("Create 901 transaction")
         try {
-            apms[0].http.mine(MineRequest(chainSymbol = vbtcs[0].name, 200))
+            apms[0].http.mine(MineRequest(chainSymbol = btcsqs[0].name, 200))
             throw NoErrorException("Error was not returned")
         } catch(e: NoErrorException) {
             logger.error(e.message)

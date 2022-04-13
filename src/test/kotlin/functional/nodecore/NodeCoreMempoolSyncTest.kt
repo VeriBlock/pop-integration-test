@@ -1,4 +1,4 @@
-package functional
+package functional.nodecore
 
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
@@ -7,11 +7,12 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import nodecore.testframework.BaseIntegrationTest
-import nodecore.testframework.connectNodes
+import org.junit.jupiter.api.TestInstance
+import testframework.BaseIntegrationTest
+import testframework.connectNodes
+import testframework.wrapper.nodecore.Output
+import testframework.wrapper.nodecore.SendCoinsRequest
 import kotlin.test.Test
-import nodecore.api.Output
-import nodecore.api.SendCoinsRequest
 
 class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
     override suspend fun setup() = coroutineScope {
@@ -80,8 +81,9 @@ class NodeCoreMempoolSyncTest : BaseIntegrationTest() {
         nodecores[0].http.getPendingTransactions().transactions[0].txId shouldBe txId
     
         // Add a new node and connect it to the network. It should get the pending transactions too
-        addNodecore().start()
-        connectNodes(nodecores[1], nodecores[2])
+        val nc = addNodecore()
+        nc.start()
+        connectNodes(nodecores[1], nc)
         
         syncAllNodecores(nodecores)
     }
